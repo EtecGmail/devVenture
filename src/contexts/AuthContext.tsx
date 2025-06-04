@@ -12,12 +12,24 @@ interface StoredUser extends User {
   passwordHash: string;
   salt: string;
   createdAt: string;
+  cpf?: string;
+}
+
+interface RegisterResult {
+  success: boolean;
+  error?: string;
 }
 
 interface AuthContextData {
   user: User | null;
   login: (email: string, password: string, type: 'aluno' | 'professor' | 'admin') => Promise<boolean>;
-  register: (email: string, password: string, name: string, type: 'aluno' | 'professor' | 'admin') => Promise<boolean>;
+  register: (
+    email: string,
+    password: string,
+    name: string,
+    type: 'aluno' | 'professor' | 'admin',
+    cpf?: string
+  ) => Promise<RegisterResult>;
   logout: () => void;
   loading: boolean;
 }
@@ -82,17 +94,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const register = async (email: string, password: string, name: string, type: 'aluno' | 'professor' | 'admin'): Promise<boolean> => {
+  const register = async (
+    email: string,
+    password: string,
+    name: string,
+    type: 'aluno' | 'professor' | 'admin',
+    cpf?: string
+  ): Promise<RegisterResult> => {
     try {
       if (type === 'admin') {
         // cadastro de administradores não permitido via app
-        return false;
+        return { success: false, error: 'Cadastro de administradores não permitido' };
       }
       const users: StoredUser[] = JSON.parse(localStorage.getItem(`@DevVenture:${type}s`) || '[]');
-      
+
       // Verificar se email já existe
       if (users.find((u) => u.email === email)) {
-        return false;
+        return { success: false, error: 'E-mail já em uso' };
+      }
+
+      if (cpf && users.find((u) => u.cpf === cpf)) {
+        return { success: false, error: 'CPF já cadastrado' };
       }
 
       const { salt, hash } = await hashPassword(password);
@@ -102,7 +124,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         name,
         passwordHash: hash,
         salt,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        ...(cpf ? { cpf } : {})
       };
 
       users.push(newUser);
@@ -117,10 +140,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       setUser(userData);
       localStorage.setItem('@DevVenture:user', JSON.stringify(userData));
-      return true;
+      return { success: true };
     } catch (error) {
       console.error('Erro no cadastro:', error);
-      return false;
+      return { success: false, error: 'Erro no cadastro' };
     }
   };
 

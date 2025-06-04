@@ -6,6 +6,7 @@ interface ValidationRule {
   minLength?: number;
   maxLength?: number;
   pattern?: RegExp;
+  validate?: (value: string) => boolean;
   message?: string;
 }
 
@@ -63,6 +64,11 @@ export const useFormValidation = (rules: ValidationRules) => {
       return false;
     }
 
+    if (rule.validate && !rule.validate(sanitizedValue)) {
+      setErrors(prev => ({ ...prev, [name]: rule.message || `${name} inválido` }));
+      return false;
+    }
+
     setErrors(prev => {
       const newErrors = { ...prev };
       delete newErrors[name];
@@ -81,11 +87,20 @@ export const useFormValidation = (rules: ValidationRules) => {
     return isValid;
   };
 
+  const clearFieldError = (name: string) => {
+    setErrors(prev => {
+      const newErrors = { ...prev };
+      delete newErrors[name];
+      return newErrors;
+    });
+  };
+
   return {
     errors,
     validateField,
     validateForm,
     sanitizeInput,
-    clearErrors: () => setErrors({})
+    clearErrors: () => setErrors({}),
+    clearFieldError
   };
 };

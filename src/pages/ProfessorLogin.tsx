@@ -10,6 +10,7 @@ import { useFormValidation } from '@/hooks/useFormValidation';
 import { useAuth } from '@/contexts/AuthContext';
 import Navigation from '@/components/Navigation';
 import { User, Eye, EyeOff } from 'lucide-react';
+import { formatCPF, isCPFValid } from '@/utils/cpf';
 
 const ProfessorLogin = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -37,8 +38,8 @@ const ProfessorLogin = () => {
     },
     cpf: {
       required: !isLogin,
-      pattern: /^\d{11}$/,
-      message: 'CPF deve conter 11 dígitos'
+      validate: isCPFValid,
+      message: 'CPF inválido'
     },
     especializacao: {
       required: !isLogin,
@@ -59,7 +60,7 @@ const ProfessorLogin = () => {
     }
   };
 
-  const { errors, validateForm, validateField, sanitizeInput } = useFormValidation(validationRules);
+  const { errors, validateForm, validateField, sanitizeInput, clearFieldError } = useFormValidation(validationRules);
 
   const [formData, setFormData] = useState({
     email: '',
@@ -79,6 +80,19 @@ const ProfessorLogin = () => {
     if (field === 'telefone') {
       processedValue = processedValue.replace(/[^0-9\s()+-]/g, '');
     }
+
+    if (field === 'cpf') {
+      processedValue = processedValue.replace(/\D/g, '').slice(0, 11);
+      const sanitized = sanitizeInput(processedValue);
+      setFormData(prev => ({ ...prev, [field]: sanitized }));
+      if (sanitized.length === 11) {
+        validateField(field, sanitized);
+      } else {
+        clearFieldError(field);
+      }
+      return;
+    }
+
     const sanitized = sanitizeInput(processedValue, preserveSpacesFields.includes(field));
     setFormData(prev => ({ ...prev, [field]: sanitized }));
     validateField(field, sanitized);
@@ -149,11 +163,11 @@ const ProfessorLogin = () => {
 
                   <div>
                     <Input
-                      placeholder="CPF (somente números) *"
-                      value={formData.cpf}
-                      onChange={(e) => handleInputChange('cpf', e.target.value.replace(/\D/g, ''))}
+                      placeholder="CPF *"
+                      value={formatCPF(formData.cpf)}
+                      onChange={(e) => handleInputChange('cpf', e.target.value)}
                       className="bg-white/20 border-white/30 text-white placeholder:text-white/70"
-                      maxLength={11}
+                      maxLength={14}
                     />
                     {errors.cpf && (
                       <p className="text-red-400 text-sm mt-1">{errors.cpf}</p>

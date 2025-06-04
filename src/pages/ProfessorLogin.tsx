@@ -48,6 +48,10 @@ const ProfessorLogin = () => {
       required: !isLogin,
       message: 'Formação é obrigatória'
     },
+    telefone: {
+      pattern: /^[0-9\s()+-]*$/,
+      message: 'Telefone deve conter apenas números'
+    },
     registro: {
       required: !isLogin,
       minLength: 3,
@@ -68,8 +72,14 @@ const ProfessorLogin = () => {
     registro: ''
   });
 
+  const preserveSpacesFields = ['name', 'formacao', 'especializacao', 'telefone'];
+
   const handleInputChange = (field: string, value: string) => {
-    const sanitized = sanitizeInput(value);
+    let processedValue = value;
+    if (field === 'telefone') {
+      processedValue = processedValue.replace(/[^0-9\s()+-]/g, '');
+    }
+    const sanitized = sanitizeInput(processedValue, preserveSpacesFields.includes(field));
     setFormData(prev => ({ ...prev, [field]: sanitized }));
     validateField(field, sanitized);
   };

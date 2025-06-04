@@ -109,17 +109,26 @@ const ProfessorLogin = () => {
     
     try {
       let success = false;
-      
+      let errorMsg: string | undefined;
+
       if (isLogin) {
         success = await login(formData.email, formData.password, 'professor');
       } else {
-        success = await register(formData.email, formData.password, formData.name, 'professor');
+        const result = await register(
+          formData.email,
+          formData.password,
+          formData.name,
+          'professor',
+          formData.cpf
+        );
+        success = result.success;
+        errorMsg = result.error;
       }
 
       if (success) {
         navigate('/professor');
       } else {
-        alert(isLogin ? 'Credenciais inválidas' : 'Erro no cadastro');
+        alert(isLogin ? 'Credenciais inválidas' : errorMsg || 'Erro no cadastro');
       }
     } catch (error) {
       console.error('Erro:', error);

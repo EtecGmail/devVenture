@@ -89,17 +89,25 @@ const AlunoLogin = () => {
     
     try {
       let success = false;
-      
+      let errorMsg: string | undefined;
+
       if (isLogin) {
         success = await login(formData.email, formData.password, 'aluno');
       } else {
-        success = await register(formData.email, formData.password, formData.name, 'aluno');
+        const result = await register(
+          formData.email,
+          formData.password,
+          formData.name,
+          'aluno'
+        );
+        success = result.success;
+        errorMsg = result.error;
       }
 
       if (success) {
         navigate('/aluno');
       } else {
-        alert(isLogin ? 'Credenciais inválidas' : 'Erro no cadastro');
+        alert(isLogin ? 'Credenciais inválidas' : errorMsg || 'Erro no cadastro');
       }
     } catch (error) {
       console.error('Erro:', error);

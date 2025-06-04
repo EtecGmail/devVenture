@@ -54,7 +54,3 @@ export const generateCSRFToken = (): string => {
 };
 
 // Aplicar headers de segurança (simulado para frontend)
-export const applySecurityHeaders = (): void => {
-  // Em uma aplicação real, isso seria feito no servidor
-  console.log('Security headers applied:', securityConfig.securityHeaders);
-};

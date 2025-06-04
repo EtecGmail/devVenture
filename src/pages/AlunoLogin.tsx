@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,6 +15,7 @@ const AlunoLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const { login, register } = useAuth();
+  const navigate = useNavigate();
 
   const validationRules = {
     email: {
@@ -48,7 +50,7 @@ const AlunoLogin = () => {
     }
   };
 
-  const { errors, validateForm, validateField } = useFormValidation(validationRules);
+  const { errors, validateForm, validateField, sanitizeInput } = useFormValidation(validationRules);
 
   const [formData, setFormData] = useState({
     email: '',
@@ -61,8 +63,9 @@ const AlunoLogin = () => {
   });
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    validateField(field, value);
+    const sanitized = sanitizeInput(value);
+    setFormData(prev => ({ ...prev, [field]: sanitized }));
+    validateField(field, sanitized);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -84,7 +87,7 @@ const AlunoLogin = () => {
       }
 
       if (success) {
-        window.location.href = '/aluno';
+        navigate('/aluno');
       } else {
         alert(isLogin ? 'Credenciais inválidas' : 'Erro no cadastro');
       }

@@ -119,7 +119,13 @@ const ProfessorLogin = () => {
           formData.password,
           formData.name,
           'professor',
-          formData.cpf
+          {
+            cpf: formData.cpf,
+            especializacao: formData.especializacao,
+            formacao: formData.formacao,
+            telefone: formData.telefone,
+            registro: formData.registro
+          }
         );
         success = result.success;
         errorMsg = result.error;

@@ -65,6 +65,10 @@ const AdminDashboard = () => {
 
   const [showStudentDialog, setShowStudentDialog] = useState(false)
   const [showTeacherDialog, setShowTeacherDialog] = useState(false)
+  const [showEditStudentDialog, setShowEditStudentDialog] = useState(false)
+  const [showEditTeacherDialog, setShowEditTeacherDialog] = useState(false)
+  const [editingStudent, setEditingStudent] = useState<SimpleUser | null>(null)
+  const [editingTeacher, setEditingTeacher] = useState<SimpleUser | null>(null)
   const [studentForm, setStudentForm] = useState({
     name: '',
     email: '',
@@ -78,6 +82,23 @@ const AdminDashboard = () => {
     name: '',
     email: '',
     password: '',
+    cpf: '',
+    especializacao: '',
+    formacao: '',
+    telefone: '',
+    registro: ''
+  })
+  const [editStudentForm, setEditStudentForm] = useState({
+    name: '',
+    email: '',
+    ra: '',
+    curso: '',
+    semestre: '',
+    telefone: ''
+  })
+  const [editTeacherForm, setEditTeacherForm] = useState({
+    name: '',
+    email: '',
     cpf: '',
     especializacao: '',
     formacao: '',
@@ -106,6 +127,25 @@ const AdminDashboard = () => {
     telefone: { pattern: /^[0-9\s()+-]*$/ }
   }
 
+  const studentEditRules = {
+    name: { required: true, minLength: 2, maxLength: 50 },
+    email: { required: true, pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ },
+    ra: { required: true, minLength: 5, maxLength: 20 },
+    curso: { required: true },
+    semestre: { required: true },
+    telefone: { pattern: /^[0-9\s()+-]*$/ }
+  }
+
+  const teacherEditRules = {
+    name: { required: true, minLength: 2, maxLength: 50 },
+    email: { required: true, pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ },
+    cpf: { required: true, validate: isCPFValid },
+    especializacao: { required: true },
+    formacao: { required: true },
+    registro: { required: true, minLength: 3 },
+    telefone: { pattern: /^[0-9\s()+-]*$/ }
+  }
+
   const {
     errors: studentErrors,
     validateField: validateStudentField,
@@ -119,6 +159,20 @@ const AdminDashboard = () => {
     validateForm: validateTeacherForm,
     sanitizeInput: sanitizeTeacherInput
   } = useFormValidation(teacherValidationRules)
+
+  const {
+    errors: editStudentErrors,
+    validateField: validateEditStudentField,
+    validateForm: validateEditStudentForm,
+    sanitizeInput: sanitizeEditStudentInput
+  } = useFormValidation(studentEditRules)
+
+  const {
+    errors: editTeacherErrors,
+    validateField: validateEditTeacherField,
+    validateForm: validateEditTeacherForm,
+    sanitizeInput: sanitizeEditTeacherInput
+  } = useFormValidation(teacherEditRules)
 
   const { register } = useAuth()
 
@@ -143,6 +197,29 @@ const AdminDashboard = () => {
     const sanitized = sanitizeTeacherInput(processed, ['name', 'formacao', 'especializacao', 'telefone'].includes(field))
     setTeacherForm(prev => ({ ...prev, [field]: sanitized }))
     validateTeacherField(field, sanitized)
+  }
+
+  const handleEditStudentChange = (field: string, value: string) => {
+    let processed = value
+    if (field === 'telefone') {
+      processed = processed.replace(/[^0-9\s()+-]/g, '')
+    }
+    const sanitized = sanitizeEditStudentInput(processed, field === 'name' || field === 'telefone')
+    setEditStudentForm(prev => ({ ...prev, [field]: sanitized }))
+    validateEditStudentField(field, sanitized)
+  }
+
+  const handleEditTeacherChange = (field: string, value: string) => {
+    let processed = value
+    if (field === 'telefone') {
+      processed = processed.replace(/[^0-9\s()+-]/g, '')
+    }
+    if (field === 'cpf') {
+      processed = processed.replace(/\D/g, '').slice(0, 11)
+    }
+    const sanitized = sanitizeEditTeacherInput(processed, ['name', 'formacao', 'especializacao', 'telefone'].includes(field))
+    setEditTeacherForm(prev => ({ ...prev, [field]: sanitized }))
+    validateEditTeacherField(field, sanitized)
   }
 
   const refreshData = () => {
@@ -236,6 +313,26 @@ const AdminDashboard = () => {
     const updated = teachers.filter((t) => t.id !== id)
     setTeachers(updated)
     localStorage.setItem('@DevVenture:professors', JSON.stringify(updated))
+  }
+
+  const handleUpdateStudent = () => {
+    if (!editingStudent || !validateEditStudentForm(editStudentForm)) return
+    const updated = students.map((s) =>
+      s.id === editingStudent.id ? { ...s, ...editStudentForm } : s
+    )
+    setStudents(updated)
+    localStorage.setItem('@DevVenture:alunos', JSON.stringify(updated))
+    setShowEditStudentDialog(false)
+  }
+
+  const handleUpdateTeacher = () => {
+    if (!editingTeacher || !validateEditTeacherForm(editTeacherForm)) return
+    const updated = teachers.map((t) =>
+      t.id === editingTeacher.id ? { ...t, ...editTeacherForm } : t
+    )
+    setTeachers(updated)
+    localStorage.setItem('@DevVenture:professors', JSON.stringify(updated))
+    setShowEditTeacherDialog(false)
   }
 
   const exportCSV = (type: 'alunos' | 'professors') => {
@@ -348,7 +445,25 @@ const AdminDashboard = () => {
                       <TableCell className="font-medium">{s.name}</TableCell>
                       <TableCell className="truncate max-w-[150px]">{s.email}</TableCell>
                       <TableCell className="hidden sm:table-cell">{s.ra}</TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="flex justify-end space-x-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setEditingStudent(s)
+                            setEditStudentForm({
+                              name: s.name,
+                              email: s.email,
+                              ra: s.ra || '',
+                              curso: s.curso || '',
+                              semestre: s.semestre || '',
+                              telefone: s.telefone || ''
+                            })
+                            setShowEditStudentDialog(true)
+                          }}
+                        >
+                          Editar
+                        </Button>
                         <Button size="sm" variant="ghost" onClick={() => deleteStudent(s.id)}>
                           Remover
                         </Button>
@@ -391,7 +506,26 @@ const AdminDashboard = () => {
                       <TableCell className="font-medium">{t.name}</TableCell>
                       <TableCell className="truncate max-w-[150px]">{t.email}</TableCell>
                       <TableCell className="hidden md:table-cell">{t.cpf}</TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="flex justify-end space-x-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setEditingTeacher(t)
+                            setEditTeacherForm({
+                              name: t.name,
+                              email: t.email,
+                              cpf: t.cpf || '',
+                              especializacao: t.especializacao || '',
+                              formacao: t.formacao || '',
+                              telefone: t.telefone || '',
+                              registro: t.registro || ''
+                            })
+                            setShowEditTeacherDialog(true)
+                          }}
+                        >
+                          Editar
+                        </Button>
                         <Button size="sm" variant="ghost" onClick={() => deleteTeacher(t.id)}>
                           Remover
                         </Button>
@@ -554,6 +688,189 @@ const AdminDashboard = () => {
             </div>
             <DialogFooter className="mt-4">
               <Button onClick={handleAddStudent}>Salvar</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={showEditStudentDialog} onOpenChange={setShowEditStudentDialog}>
+          <DialogContent className="max-w-md sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Editar Aluno</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Input
+                  placeholder="Nome"
+                  value={editStudentForm.name}
+                  onChange={(e) => handleEditStudentChange('name', e.target.value)}
+                />
+                {editStudentErrors.name && (
+                  <p className="text-red-500 text-sm">{editStudentErrors.name}</p>
+                )}
+              </div>
+
+              <div>
+                <Input
+                  placeholder="Email"
+                  type="email"
+                  value={editStudentForm.email}
+                  onChange={(e) => handleEditStudentChange('email', e.target.value)}
+                />
+                {editStudentErrors.email && (
+                  <p className="text-red-500 text-sm">{editStudentErrors.email}</p>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <Input
+                    placeholder="RA"
+                    value={editStudentForm.ra}
+                    onChange={(e) => handleEditStudentChange('ra', e.target.value)}
+                  />
+                  {editStudentErrors.ra && (
+                    <p className="text-red-500 text-sm">{editStudentErrors.ra}</p>
+                  )}
+                </div>
+
+                <div>
+                  <Input
+                    placeholder="Curso"
+                    value={editStudentForm.curso}
+                    onChange={(e) => handleEditStudentChange('curso', e.target.value)}
+                  />
+                  {editStudentErrors.curso && (
+                    <p className="text-red-500 text-sm">{editStudentErrors.curso}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <Input
+                    placeholder="Semestre"
+                    value={editStudentForm.semestre}
+                    onChange={(e) => handleEditStudentChange('semestre', e.target.value)}
+                  />
+                  {editStudentErrors.semestre && (
+                    <p className="text-red-500 text-sm">{editStudentErrors.semestre}</p>
+                  )}
+                </div>
+
+                <div>
+                  <Input
+                    placeholder="Telefone"
+                    value={editStudentForm.telefone}
+                    onChange={(e) => handleEditStudentChange('telefone', e.target.value)}
+                  />
+                  {editStudentErrors.telefone && (
+                    <p className="text-red-500 text-sm">{editStudentErrors.telefone}</p>
+                  )}
+                </div>
+              </div>
+
+              {editingStudent?.createdAt && (
+                <p className="text-sm text-slate-600">Cadastrado em {format(parseISO(editingStudent.createdAt), 'dd/MM/yyyy')}</p>
+              )}
+            </div>
+            <DialogFooter className="mt-4">
+              <Button onClick={handleUpdateStudent}>Salvar</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={showEditTeacherDialog} onOpenChange={setShowEditTeacherDialog}>
+          <DialogContent className="max-w-md sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Editar Professor</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Input
+                  placeholder="Nome"
+                  value={editTeacherForm.name}
+                  onChange={(e) => handleEditTeacherChange('name', e.target.value)}
+                />
+                {editTeacherErrors.name && (
+                  <p className="text-red-500 text-sm">{editTeacherErrors.name}</p>
+                )}
+              </div>
+
+              <div>
+                <Input
+                  placeholder="Email"
+                  type="email"
+                  value={editTeacherForm.email}
+                  onChange={(e) => handleEditTeacherChange('email', e.target.value)}
+                />
+                {editTeacherErrors.email && (
+                  <p className="text-red-500 text-sm">{editTeacherErrors.email}</p>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <Input
+                    placeholder="CPF"
+                    value={editTeacherForm.cpf}
+                    onChange={(e) => handleEditTeacherChange('cpf', e.target.value)}
+                  />
+                  {editTeacherErrors.cpf && (
+                    <p className="text-red-500 text-sm">{editTeacherErrors.cpf}</p>
+                  )}
+                </div>
+
+                <div>
+                  <Input
+                    placeholder="Registro profissional"
+                    value={editTeacherForm.registro}
+                    onChange={(e) => handleEditTeacherChange('registro', e.target.value)}
+                  />
+                  {editTeacherErrors.registro && (
+                    <p className="text-red-500 text-sm">{editTeacherErrors.registro}</p>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <Input
+                  placeholder="Área de especialização"
+                  value={editTeacherForm.especializacao}
+                  onChange={(e) => handleEditTeacherChange('especializacao', e.target.value)}
+                />
+                {editTeacherErrors.especializacao && (
+                  <p className="text-red-500 text-sm">{editTeacherErrors.especializacao}</p>
+                )}
+              </div>
+
+              <div>
+                <Input
+                  placeholder="Formação"
+                  value={editTeacherForm.formacao}
+                  onChange={(e) => handleEditTeacherChange('formacao', e.target.value)}
+                />
+                {editTeacherErrors.formacao && (
+                  <p className="text-red-500 text-sm">{editTeacherErrors.formacao}</p>
+                )}
+              </div>
+
+              <div>
+                <Input
+                  placeholder="Telefone"
+                  value={editTeacherForm.telefone}
+                  onChange={(e) => handleEditTeacherChange('telefone', e.target.value)}
+                />
+                {editTeacherErrors.telefone && (
+                  <p className="text-red-500 text-sm">{editTeacherErrors.telefone}</p>
+                )}
+              </div>
+
+              {editingTeacher?.createdAt && (
+                <p className="text-sm text-slate-600">Cadastrado em {format(parseISO(editingTeacher.createdAt), 'dd/MM/yyyy')}</p>
+              )}
+            </div>
+            <DialogFooter className="mt-4">
+              <Button onClick={handleUpdateTeacher}>Salvar</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

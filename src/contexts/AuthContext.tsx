@@ -8,6 +8,12 @@ interface User {
   type: 'aluno' | 'professor';
 }
 
+interface StoredUser extends User {
+  passwordHash: string;
+  salt: string;
+  createdAt: string;
+}
+
 interface AuthContextData {
   user: User | null;
   login: (email: string, password: string, type: 'aluno' | 'professor') => Promise<boolean>;
@@ -38,10 +44,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (email: string, password: string, type: 'aluno' | 'professor'): Promise<boolean> => {
     try {
       // Simulação de API call - em produção, substituir por chamada real
-      const users = JSON.parse(localStorage.getItem(`@DevVenture:${type}s`) || '[]');
-      const foundUser = users.find((u: any) => u.email === email);
-      
-      if (foundUser && await verifyPassword(password, foundUser.passwordHash)) {
+      const users: StoredUser[] = JSON.parse(localStorage.getItem(`@DevVenture:${type}s`) || '[]');
+      const foundUser = users.find((u) => u.email === email);
+
+      if (foundUser && await verifyPassword(password, foundUser.salt, foundUser.passwordHash)) {
         const userData: User = {
           id: foundUser.id,
           email: foundUser.email,
@@ -62,19 +68,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const register = async (email: string, password: string, name: string, type: 'aluno' | 'professor'): Promise<boolean> => {
     try {
-      const users = JSON.parse(localStorage.getItem(`@DevVenture:${type}s`) || '[]');
+      const users: StoredUser[] = JSON.parse(localStorage.getItem(`@DevVenture:${type}s`) || '[]');
       
       // Verificar se email já existe
-      if (users.find((u: any) => u.email === email)) {
+      if (users.find((u) => u.email === email)) {
         return false;
       }
 
-      const passwordHash = await hashPassword(password);
-      const newUser = {
+      const { salt, hash } = await hashPassword(password);
+      const newUser: StoredUser = {
         id: generateId(),
         email,
         name,
-        passwordHash,
+        passwordHash: hash,
+        salt,
         createdAt: new Date().toISOString()
       };
 
@@ -124,17 +131,23 @@ export const useAuth = () => {
 };
 
 // Funções de hash e verificação de senha (simuladas)
-const hashPassword = async (password: string): Promise<string> => {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password + 'salt_' + Date.now());
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+const generateSalt = (): string => {
+  return Math.random().toString(36).substring(2, 15);
 };
 
-const verifyPassword = async (password: string, hash: string): Promise<boolean> => {
+const hashPassword = async (password: string, salt?: string): Promise<{ salt: string; hash: string }> => {
+  const usedSalt = salt || generateSalt();
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password + usedSalt);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  return { salt: usedSalt, hash };
+};
+
+const verifyPassword = async (password: string, salt: string, hash: string): Promise<boolean> => {
   // Em produção, usar bcrypt ou similar
-  const newHash = await hashPassword(password.split('salt_')[0] || password);
+  const { hash: newHash } = await hashPassword(password, salt);
   return newHash === hash;
 };
 

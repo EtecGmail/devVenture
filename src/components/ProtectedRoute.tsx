@@ -1,6 +1,7 @@
 
 import React, { ReactNode } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -14,6 +15,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   redirectTo 
 }) => {
   const { user, loading } = useAuth();
+  const navigate = useNavigate();
 
   if (loading) {
     return (
@@ -25,12 +27,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   if (!user) {
     const loginPath = requiredType ? `/${requiredType}/login` : '/';
-    window.location.href = redirectTo || loginPath;
+    navigate(redirectTo || loginPath);
     return null;
   }
 
   if (requiredType && user.type !== requiredType) {
-    window.location.href = `/${user.type}`;
+    navigate(`/${user.type}`);
     return null;
   }
 

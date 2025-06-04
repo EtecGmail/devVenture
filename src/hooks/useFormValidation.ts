@@ -16,9 +16,12 @@ interface ValidationRules {
 export const useFormValidation = (rules: ValidationRules) => {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
-  const sanitizeInput = (value: string): string => {
-    return value
-      .trim()
+  const sanitizeInput = (value: string, preserveSpaces = false): string => {
+    let sanitized = value;
+    if (!preserveSpaces) {
+      sanitized = sanitized.trim();
+    }
+    return sanitized
       .replace(/[<>]/g, '') // Remove basic XSS characters
       .replace(/javascript:/gi, '') // Remove javascript: protocols
       .replace(/on\w+=/gi, ''); // Remove event handlers

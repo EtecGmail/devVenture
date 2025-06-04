@@ -47,6 +47,10 @@ const AlunoLogin = () => {
     semestre: {
       required: !isLogin,
       message: 'Semestre é obrigatório'
+    },
+    telefone: {
+      pattern: /^[0-9\s()+-]*$/,
+      message: 'Telefone deve conter apenas números'
     }
   };
 
@@ -62,8 +66,14 @@ const AlunoLogin = () => {
     telefone: ''
   });
 
+  const preserveSpacesFields = ['name', 'telefone'];
+
   const handleInputChange = (field: string, value: string) => {
-    const sanitized = sanitizeInput(value);
+    let processedValue = value;
+    if (field === 'telefone') {
+      processedValue = processedValue.replace(/[^0-9\s()+-]/g, '');
+    }
+    const sanitized = sanitizeInput(processedValue, preserveSpacesFields.includes(field));
     setFormData(prev => ({ ...prev, [field]: sanitized }));
     validateField(field, sanitized);
   };

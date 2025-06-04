@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { useFormValidation } from '@/hooks/useFormValidation';
+import { isCPFValid } from '@/utils/cpf';
 import {
   Card,
   CardContent,
@@ -83,7 +85,65 @@ const AdminDashboard = () => {
     registro: ''
   })
 
+  const studentValidationRules = {
+    name: { required: true, minLength: 2, maxLength: 50 },
+    email: { required: true, pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ },
+    password: { required: true, minLength: 6 },
+    ra: { required: true, minLength: 5, maxLength: 20 },
+    curso: { required: true },
+    semestre: { required: true },
+    telefone: { pattern: /^[0-9\s()+-]*$/ }
+  }
+
+  const teacherValidationRules = {
+    name: { required: true, minLength: 2, maxLength: 50 },
+    email: { required: true, pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ },
+    password: { required: true, minLength: 6 },
+    cpf: { required: true, validate: isCPFValid },
+    especializacao: { required: true },
+    formacao: { required: true },
+    registro: { required: true, minLength: 3 },
+    telefone: { pattern: /^[0-9\s()+-]*$/ }
+  }
+
+  const {
+    errors: studentErrors,
+    validateField: validateStudentField,
+    validateForm: validateStudentForm,
+    sanitizeInput: sanitizeStudentInput
+  } = useFormValidation(studentValidationRules)
+
+  const {
+    errors: teacherErrors,
+    validateField: validateTeacherField,
+    validateForm: validateTeacherForm,
+    sanitizeInput: sanitizeTeacherInput
+  } = useFormValidation(teacherValidationRules)
+
   const { register } = useAuth()
+
+  const handleStudentChange = (field: string, value: string) => {
+    let processed = value
+    if (field === 'telefone') {
+      processed = processed.replace(/[^0-9\s()+-]/g, '')
+    }
+    const sanitized = sanitizeStudentInput(processed, field === 'name' || field === 'telefone')
+    setStudentForm(prev => ({ ...prev, [field]: sanitized }))
+    validateStudentField(field, sanitized)
+  }
+
+  const handleTeacherChange = (field: string, value: string) => {
+    let processed = value
+    if (field === 'telefone') {
+      processed = processed.replace(/[^0-9\s()+-]/g, '')
+    }
+    if (field === 'cpf') {
+      processed = processed.replace(/\D/g, '').slice(0, 11)
+    }
+    const sanitized = sanitizeTeacherInput(processed, ['name', 'formacao', 'especializacao', 'telefone'].includes(field))
+    setTeacherForm(prev => ({ ...prev, [field]: sanitized }))
+    validateTeacherField(field, sanitized)
+  }
 
   const refreshData = () => {
     const alunoData = JSON.parse(
@@ -97,6 +157,10 @@ const AdminDashboard = () => {
   }
 
   const handleAddStudent = async () => {
+    if (!validateStudentForm(studentForm)) {
+      return
+    }
+
     const result = await register(
       studentForm.email,
       studentForm.password,
@@ -127,6 +191,10 @@ const AdminDashboard = () => {
   }
 
   const handleAddTeacher = async () => {
+    if (!validateTeacherForm(teacherForm)) {
+      return
+    }
+
     const result = await register(
       teacherForm.email,
       teacherForm.password,
@@ -394,40 +462,61 @@ const AdminDashboard = () => {
               <Input
                 placeholder="Nome"
                 value={studentForm.name}
-                onChange={(e) => setStudentForm({ ...studentForm, name: e.target.value })}
+                onChange={(e) => handleStudentChange('name', e.target.value)}
               />
+              {studentErrors.name && (
+                <p className="text-red-500 text-sm">{studentErrors.name}</p>
+              )}
               <Input
                 placeholder="Email"
                 type="email"
                 value={studentForm.email}
-                onChange={(e) => setStudentForm({ ...studentForm, email: e.target.value })}
+                onChange={(e) => handleStudentChange('email', e.target.value)}
               />
+              {studentErrors.email && (
+                <p className="text-red-500 text-sm">{studentErrors.email}</p>
+              )}
               <Input
                 placeholder="RA"
                 value={studentForm.ra}
-                onChange={(e) => setStudentForm({ ...studentForm, ra: e.target.value })}
+                onChange={(e) => handleStudentChange('ra', e.target.value)}
               />
+              {studentErrors.ra && (
+                <p className="text-red-500 text-sm">{studentErrors.ra}</p>
+              )}
               <Input
                 placeholder="Curso"
                 value={studentForm.curso}
-                onChange={(e) => setStudentForm({ ...studentForm, curso: e.target.value })}
+                onChange={(e) => handleStudentChange('curso', e.target.value)}
               />
+              {studentErrors.curso && (
+                <p className="text-red-500 text-sm">{studentErrors.curso}</p>
+              )}
               <Input
                 placeholder="Semestre"
                 value={studentForm.semestre}
-                onChange={(e) => setStudentForm({ ...studentForm, semestre: e.target.value })}
+                onChange={(e) => handleStudentChange('semestre', e.target.value)}
               />
+              {studentErrors.semestre && (
+                <p className="text-red-500 text-sm">{studentErrors.semestre}</p>
+              )}
               <Input
                 placeholder="Telefone"
                 value={studentForm.telefone}
-                onChange={(e) => setStudentForm({ ...studentForm, telefone: e.target.value })}
+                onChange={(e) => handleStudentChange('telefone', e.target.value)}
               />
+              {studentErrors.telefone && (
+                <p className="text-red-500 text-sm">{studentErrors.telefone}</p>
+              )}
               <Input
                 placeholder="Senha"
                 type="password"
                 value={studentForm.password}
-                onChange={(e) => setStudentForm({ ...studentForm, password: e.target.value })}
+                onChange={(e) => handleStudentChange('password', e.target.value)}
               />
+              {studentErrors.password && (
+                <p className="text-red-500 text-sm">{studentErrors.password}</p>
+              )}
             </div>
             <DialogFooter className="mt-4">
               <Button onClick={handleAddStudent}>Salvar</Button>
@@ -444,45 +533,69 @@ const AdminDashboard = () => {
               <Input
                 placeholder="Nome"
                 value={teacherForm.name}
-                onChange={(e) => setTeacherForm({ ...teacherForm, name: e.target.value })}
+                onChange={(e) => handleTeacherChange('name', e.target.value)}
               />
+              {teacherErrors.name && (
+                <p className="text-red-500 text-sm">{teacherErrors.name}</p>
+              )}
               <Input
                 placeholder="Email"
                 type="email"
                 value={teacherForm.email}
-                onChange={(e) => setTeacherForm({ ...teacherForm, email: e.target.value })}
+                onChange={(e) => handleTeacherChange('email', e.target.value)}
               />
+              {teacherErrors.email && (
+                <p className="text-red-500 text-sm">{teacherErrors.email}</p>
+              )}
               <Input
                 placeholder="CPF"
                 value={teacherForm.cpf}
-                onChange={(e) => setTeacherForm({ ...teacherForm, cpf: e.target.value })}
+                onChange={(e) => handleTeacherChange('cpf', e.target.value)}
               />
+              {teacherErrors.cpf && (
+                <p className="text-red-500 text-sm">{teacherErrors.cpf}</p>
+              )}
               <Input
                 placeholder="Área de especialização"
                 value={teacherForm.especializacao}
-                onChange={(e) => setTeacherForm({ ...teacherForm, especializacao: e.target.value })}
+                onChange={(e) => handleTeacherChange('especializacao', e.target.value)}
               />
+              {teacherErrors.especializacao && (
+                <p className="text-red-500 text-sm">{teacherErrors.especializacao}</p>
+              )}
               <Input
                 placeholder="Formação"
                 value={teacherForm.formacao}
-                onChange={(e) => setTeacherForm({ ...teacherForm, formacao: e.target.value })}
+                onChange={(e) => handleTeacherChange('formacao', e.target.value)}
               />
+              {teacherErrors.formacao && (
+                <p className="text-red-500 text-sm">{teacherErrors.formacao}</p>
+              )}
               <Input
                 placeholder="Registro profissional"
                 value={teacherForm.registro}
-                onChange={(e) => setTeacherForm({ ...teacherForm, registro: e.target.value })}
+                onChange={(e) => handleTeacherChange('registro', e.target.value)}
               />
+              {teacherErrors.registro && (
+                <p className="text-red-500 text-sm">{teacherErrors.registro}</p>
+              )}
               <Input
                 placeholder="Telefone"
                 value={teacherForm.telefone}
-                onChange={(e) => setTeacherForm({ ...teacherForm, telefone: e.target.value })}
+                onChange={(e) => handleTeacherChange('telefone', e.target.value)}
               />
+              {teacherErrors.telefone && (
+                <p className="text-red-500 text-sm">{teacherErrors.telefone}</p>
+              )}
               <Input
                 placeholder="Senha"
                 type="password"
                 value={teacherForm.password}
-                onChange={(e) => setTeacherForm({ ...teacherForm, password: e.target.value })}
+                onChange={(e) => handleTeacherChange('password', e.target.value)}
               />
+              {teacherErrors.password && (
+                <p className="text-red-500 text-sm">{teacherErrors.password}</p>
+              )}
             </div>
             <DialogFooter className="mt-4">
               <Button onClick={handleAddTeacher}>Salvar</Button>

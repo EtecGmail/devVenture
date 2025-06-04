@@ -10,7 +10,10 @@ import Professor from "./pages/Professor";
 import Aluno from "./pages/Aluno";
 import AlunoLogin from "./pages/AlunoLogin";
 import ProfessorLogin from "./pages/ProfessorLogin";
+import Admin from "./pages/Admin";
+import AdminLogin from "./pages/AdminLogin";
 import NotFound from "./pages/NotFound";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -23,10 +26,33 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/professor" element={<Professor />} />
+            <Route
+              path="/professor"
+              element={
+                <ProtectedRoute requiredType="professor">
+                  <Professor />
+                </ProtectedRoute>
+              }
+            />
             <Route path="/professor/login" element={<ProfessorLogin />} />
-            <Route path="/aluno" element={<Aluno />} />
+            <Route
+              path="/aluno"
+              element={
+                <ProtectedRoute requiredType="aluno">
+                  <Aluno />
+                </ProtectedRoute>
+              }
+            />
             <Route path="/aluno/login" element={<AlunoLogin />} />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute requiredType="admin">
+                  <Admin />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/admin/login" element={<AdminLogin />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

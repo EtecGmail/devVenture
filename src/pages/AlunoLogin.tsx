@@ -14,6 +14,7 @@ const AlunoLogin = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const { login, register } = useAuth();
   const navigate = useNavigate();
 
@@ -80,6 +81,7 @@ const AlunoLogin = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitError(null);
     
     if (!validateForm(formData)) {
       return;
@@ -107,11 +109,11 @@ const AlunoLogin = () => {
       if (success) {
         navigate('/aluno');
       } else {
-        alert(isLogin ? 'Credenciais inválidas' : errorMsg || 'Erro no cadastro');
+        setSubmitError(isLogin ? 'Credenciais inválidas' : errorMsg || 'Erro no cadastro');
       }
     } catch (error) {
       console.error('Erro:', error);
-      alert('Erro interno. Tente novamente.');
+      setSubmitError('Erro interno. Tente novamente.');
     } finally {
       setLoading(false);
     }
@@ -251,11 +253,17 @@ const AlunoLogin = () => {
               >
                 {loading ? 'Processando...' : (isLogin ? 'Entrar' : 'Cadastrar')}
               </Button>
+              {submitError && (
+                <p className="text-red-400 text-sm mt-2 text-center">{submitError}</p>
+              )}
             </form>
 
             <div className="mt-6 text-center space-y-2">
               <button
-                onClick={() => setIsLogin(!isLogin)}
+                onClick={() => {
+                  setIsLogin(!isLogin);
+                  setSubmitError(null);
+                }}
                 className="text-blue-400 hover:text-blue-300 text-sm block"
               >
                 {isLogin ? 'Não tem conta? Cadastre-se' : 'Já tem conta? Faça login'}

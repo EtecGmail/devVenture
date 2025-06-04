@@ -12,18 +12,20 @@ const AdminLogin = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitError(null);
     setLoading(true);
     const success = await login(email, password, 'admin');
     setLoading(false);
     if (success) {
       navigate('/admin');
     } else {
-      alert('Credenciais inválidas');
+      setSubmitError('Credenciais inválidas');
     }
   };
 
@@ -68,6 +70,9 @@ const AdminLogin = () => {
               <Button type="submit" className="w-full bg-red-600 hover:bg-red-700 text-white" disabled={loading}>
                 {loading ? 'Processando...' : 'Entrar'}
               </Button>
+              {submitError && (
+                <p className="text-red-400 text-sm mt-2 text-center">{submitError}</p>
+              )}
             </form>
           </CardContent>
         </Card>

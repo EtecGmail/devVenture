@@ -40,6 +40,14 @@ interface SimpleUser {
   name: string
   email: string
   createdAt?: string
+  ra?: string
+  curso?: string
+  semestre?: string
+  telefone?: string
+  cpf?: string
+  especializacao?: string
+  formacao?: string
+  registro?: string
 }
 
 interface ChartPoint {
@@ -55,8 +63,25 @@ const AdminDashboard = () => {
 
   const [showStudentDialog, setShowStudentDialog] = useState(false)
   const [showTeacherDialog, setShowTeacherDialog] = useState(false)
-  const [studentForm, setStudentForm] = useState({ name: '', email: '', password: '' })
-  const [teacherForm, setTeacherForm] = useState({ name: '', email: '', password: '' })
+  const [studentForm, setStudentForm] = useState({
+    name: '',
+    email: '',
+    password: '',
+    ra: '',
+    curso: '',
+    semestre: '',
+    telefone: ''
+  })
+  const [teacherForm, setTeacherForm] = useState({
+    name: '',
+    email: '',
+    password: '',
+    cpf: '',
+    especializacao: '',
+    formacao: '',
+    telefone: '',
+    registro: ''
+  })
 
   const { register } = useAuth()
 
@@ -76,12 +101,26 @@ const AdminDashboard = () => {
       studentForm.email,
       studentForm.password,
       studentForm.name,
-      'aluno'
+      'aluno',
+      {
+        ra: studentForm.ra,
+        curso: studentForm.curso,
+        semestre: studentForm.semestre,
+        telefone: studentForm.telefone
+      }
     )
     if (result.success) {
       refreshData()
       setShowStudentDialog(false)
-      setStudentForm({ name: '', email: '', password: '' })
+      setStudentForm({
+        name: '',
+        email: '',
+        password: '',
+        ra: '',
+        curso: '',
+        semestre: '',
+        telefone: ''
+      })
     } else {
       alert(result.error || 'Erro ao cadastrar aluno')
     }
@@ -92,12 +131,28 @@ const AdminDashboard = () => {
       teacherForm.email,
       teacherForm.password,
       teacherForm.name,
-      'professor'
+      'professor',
+      {
+        cpf: teacherForm.cpf,
+        especializacao: teacherForm.especializacao,
+        formacao: teacherForm.formacao,
+        telefone: teacherForm.telefone,
+        registro: teacherForm.registro
+      }
     )
     if (result.success) {
       refreshData()
       setShowTeacherDialog(false)
-      setTeacherForm({ name: '', email: '', password: '' })
+      setTeacherForm({
+        name: '',
+        email: '',
+        password: '',
+        cpf: '',
+        especializacao: '',
+        formacao: '',
+        telefone: '',
+        registro: ''
+      })
     } else {
       alert(result.error || 'Erro ao cadastrar professor')
     }
@@ -212,6 +267,7 @@ const AdminDashboard = () => {
                 <TableRow>
                   <TableHead>Nome</TableHead>
                   <TableHead>Email</TableHead>
+                  <TableHead>RA</TableHead>
                   <TableHead className="w-32">Ações</TableHead>
                 </TableRow>
               </TableHeader>
@@ -220,6 +276,7 @@ const AdminDashboard = () => {
                   <TableRow key={s.id}>
                     <TableCell>{s.name}</TableCell>
                     <TableCell>{s.email}</TableCell>
+                    <TableCell>{s.ra}</TableCell>
                     <TableCell className="space-x-2 text-right">
                       <Button size="sm" variant="ghost" onClick={() => deleteStudent(s.id)}>
                         Remover
@@ -250,6 +307,7 @@ const AdminDashboard = () => {
                 <TableRow>
                   <TableHead>Nome</TableHead>
                   <TableHead>Email</TableHead>
+                  <TableHead>CPF</TableHead>
                   <TableHead className="w-32">Ações</TableHead>
                 </TableRow>
               </TableHeader>
@@ -258,6 +316,7 @@ const AdminDashboard = () => {
                   <TableRow key={t.id}>
                     <TableCell>{t.name}</TableCell>
                     <TableCell>{t.email}</TableCell>
+                    <TableCell>{t.cpf}</TableCell>
                     <TableCell className="space-x-2 text-right">
                       <Button size="sm" variant="ghost" onClick={() => deleteTeacher(t.id)}>
                         Remover
@@ -344,6 +403,26 @@ const AdminDashboard = () => {
                 onChange={(e) => setStudentForm({ ...studentForm, email: e.target.value })}
               />
               <Input
+                placeholder="RA"
+                value={studentForm.ra}
+                onChange={(e) => setStudentForm({ ...studentForm, ra: e.target.value })}
+              />
+              <Input
+                placeholder="Curso"
+                value={studentForm.curso}
+                onChange={(e) => setStudentForm({ ...studentForm, curso: e.target.value })}
+              />
+              <Input
+                placeholder="Semestre"
+                value={studentForm.semestre}
+                onChange={(e) => setStudentForm({ ...studentForm, semestre: e.target.value })}
+              />
+              <Input
+                placeholder="Telefone"
+                value={studentForm.telefone}
+                onChange={(e) => setStudentForm({ ...studentForm, telefone: e.target.value })}
+              />
+              <Input
                 placeholder="Senha"
                 type="password"
                 value={studentForm.password}
@@ -372,6 +451,31 @@ const AdminDashboard = () => {
                 type="email"
                 value={teacherForm.email}
                 onChange={(e) => setTeacherForm({ ...teacherForm, email: e.target.value })}
+              />
+              <Input
+                placeholder="CPF"
+                value={teacherForm.cpf}
+                onChange={(e) => setTeacherForm({ ...teacherForm, cpf: e.target.value })}
+              />
+              <Input
+                placeholder="Área de especialização"
+                value={teacherForm.especializacao}
+                onChange={(e) => setTeacherForm({ ...teacherForm, especializacao: e.target.value })}
+              />
+              <Input
+                placeholder="Formação"
+                value={teacherForm.formacao}
+                onChange={(e) => setTeacherForm({ ...teacherForm, formacao: e.target.value })}
+              />
+              <Input
+                placeholder="Registro profissional"
+                value={teacherForm.registro}
+                onChange={(e) => setTeacherForm({ ...teacherForm, registro: e.target.value })}
+              />
+              <Input
+                placeholder="Telefone"
+                value={teacherForm.telefone}
+                onChange={(e) => setTeacherForm({ ...teacherForm, telefone: e.target.value })}
               />
               <Input
                 placeholder="Senha"

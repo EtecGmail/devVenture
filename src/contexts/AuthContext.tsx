@@ -8,11 +8,29 @@ interface User {
   type: 'aluno' | 'professor' | 'admin';
 }
 
-interface StoredUser extends User {
+export interface StoredUser extends User {
   passwordHash: string;
   salt: string;
   createdAt: string;
   cpf?: string;
+  ra?: string;
+  curso?: string;
+  semestre?: string;
+  telefone?: string;
+  especializacao?: string;
+  formacao?: string;
+  registro?: string;
+}
+
+export interface RegisterExtras {
+  cpf?: string;
+  ra?: string;
+  curso?: string;
+  semestre?: string;
+  telefone?: string;
+  especializacao?: string;
+  formacao?: string;
+  registro?: string;
 }
 
 interface RegisterResult {
@@ -28,7 +46,7 @@ interface AuthContextData {
     password: string,
     name: string,
     type: 'aluno' | 'professor' | 'admin',
-    cpf?: string
+    extras?: RegisterExtras
   ) => Promise<RegisterResult>;
   logout: () => void;
   loading: boolean;
@@ -99,7 +117,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     password: string,
     name: string,
     type: 'aluno' | 'professor' | 'admin',
-    cpf?: string
+    extras: RegisterExtras = {}
   ): Promise<RegisterResult> => {
     try {
       if (type === 'admin') {
@@ -113,8 +131,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return { success: false, error: 'E-mail já em uso' };
       }
 
-      if (cpf && users.find((u) => u.cpf === cpf)) {
+      if (extras.cpf && users.find((u) => u.cpf === extras.cpf)) {
         return { success: false, error: 'CPF já cadastrado' };
+      }
+
+      if (extras.ra && users.find((u) => u.ra === extras.ra)) {
+        return { success: false, error: 'RA já cadastrado' };
       }
 
       const { salt, hash } = await hashPassword(password);
@@ -125,7 +147,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         passwordHash: hash,
         salt,
         createdAt: new Date().toISOString(),
-        ...(cpf ? { cpf } : {})
+        ...extras
       };
 
       users.push(newUser);

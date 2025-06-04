@@ -98,7 +98,13 @@ const AlunoLogin = () => {
           formData.email,
           formData.password,
           formData.name,
-          'aluno'
+          'aluno',
+          {
+            ra: formData.ra,
+            curso: formData.curso,
+            semestre: formData.semestre,
+            telefone: formData.telefone
+          }
         );
         success = result.success;
         errorMsg = result.error;

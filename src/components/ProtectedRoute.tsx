@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 
 interface ProtectedRouteProps {
   children: ReactNode;
-  requiredType?: 'aluno' | 'professor';
+  requiredType?: 'aluno' | 'professor' | 'admin';
   redirectTo?: string;
 }
 

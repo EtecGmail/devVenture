@@ -39,8 +39,6 @@ npm run build
 - Aplique ferramentas de análise estática (lint) e testes de segurança sempre que possível.
 - Utilize HTTPS e valide as entradas do usuário para evitar XSS, CSRF e injeção de código.
 
-## Contribuição
-Pull requests são bem-vindos. Para contribuições siga o padrão de commits e abra uma nova branch para cada funcionalidade ou correção.
 
 ---
 Todos os direitos reservados à equipe Harpion.

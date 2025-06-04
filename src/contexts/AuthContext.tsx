@@ -5,7 +5,7 @@ interface User {
   id: string;
   email: string;
   name: string;
-  type: 'aluno' | 'professor';
+  type: 'aluno' | 'professor' | 'admin';
 }
 
 interface StoredUser extends User {
@@ -16,8 +16,8 @@ interface StoredUser extends User {
 
 interface AuthContextData {
   user: User | null;
-  login: (email: string, password: string, type: 'aluno' | 'professor') => Promise<boolean>;
-  register: (email: string, password: string, name: string, type: 'aluno' | 'professor') => Promise<boolean>;
+  login: (email: string, password: string, type: 'aluno' | 'professor' | 'admin') => Promise<boolean>;
+  register: (email: string, password: string, name: string, type: 'aluno' | 'professor' | 'admin') => Promise<boolean>;
   logout: () => void;
   loading: boolean;
 }
@@ -41,8 +41,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setLoading(false);
   }, []);
 
-  const login = async (email: string, password: string, type: 'aluno' | 'professor'): Promise<boolean> => {
+  const login = async (email: string, password: string, type: 'aluno' | 'professor' | 'admin'): Promise<boolean> => {
     try {
+      if (type === 'admin') {
+        // Admin com credenciais fixas
+        if (email === 'admin@devventure.com' && password === 'admin123') {
+          const userData: User = {
+            id: 'admin',
+            email,
+            name: 'Administrador',
+            type: 'admin'
+          };
+          setUser(userData);
+          localStorage.setItem('@DevVenture:user', JSON.stringify(userData));
+          return true;
+        }
+        return false;
+      }
+
       // Simulação de API call - em produção, substituir por chamada real
       const users: StoredUser[] = JSON.parse(localStorage.getItem(`@DevVenture:${type}s`) || '[]');
       const foundUser = users.find((u) => u.email === email);
@@ -66,8 +82,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const register = async (email: string, password: string, name: string, type: 'aluno' | 'professor'): Promise<boolean> => {
+  const register = async (email: string, password: string, name: string, type: 'aluno' | 'professor' | 'admin'): Promise<boolean> => {
     try {
+      if (type === 'admin') {
+        // cadastro de administradores não permitido via app
+        return false;
+      }
       const users: StoredUser[] = JSON.parse(localStorage.getItem(`@DevVenture:${type}s`) || '[]');
       
       // Verificar se email já existe

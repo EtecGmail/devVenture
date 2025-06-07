@@ -1,29 +1,70 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Filters } from '@/utils/dashboard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Filter, Users, BookOpen, CalendarDays, Search } from 'lucide-react';
+import { Filter, Users, BookOpen, CalendarDays, Search, X } from 'lucide-react';
 
 interface AdminSidebarProps {
   filters: Filters;
   onChange: (filters: Filters) => void;
   onApply: () => void;
   onReset: () => void;
+  isMobileOpen: boolean;
+  toggleMobile: () => void;
 }
 
-const AdminSidebar: React.FC<AdminSidebarProps> = ({ filters, onChange, onApply, onReset }) => {
+const AdminSidebar: React.FC<AdminSidebarProps> = ({
+  filters,
+  onChange,
+  onApply,
+  onReset,
+  isMobileOpen,
+  toggleMobile,
+}) => {
+  const [isLargeScreen, setIsLargeScreen] = useState(window.innerWidth > 768);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsLargeScreen(window.innerWidth > 768);
+      if (window.innerWidth > 768 && !isMobileOpen) {
+        toggleMobile();
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isMobileOpen, toggleMobile]);
+
   return (
-    <Card className="h-full w-64 lg:w-72 xl:w-80 bg-slate-800 border-slate-700 text-white fixed top-16 left-0 overflow-y-auto pt-4">
-      <CardHeader>
-        <CardTitle className="flex items-center text-xl text-slate-100">
-          <Filter size={24} className="mr-2 text-blue-400" />
-          Filtros Avançados
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6 p-4">
+    <>
+      {isMobileOpen && !isLargeScreen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"
+          onClick={toggleMobile}
+        />
+      )}
+
+      <Card
+        className={`h-full w-64 lg:w-72 xl:w-80 bg-slate-800 border-slate-700 text-white fixed top-16 left-0 overflow-y-auto pt-4 z-40 transition-transform duration-300 ${
+          isMobileOpen || isLargeScreen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        <CardHeader className="relative">
+          <CardTitle className="flex items-center text-xl text-slate-100">
+            <Filter size={24} className="mr-2 text-blue-400" />
+            Filtros Avançados
+          </CardTitle>
+          <button
+            className="md:hidden absolute top-4 right-4 text-slate-300 hover:text-white"
+            onClick={toggleMobile}
+          >
+            <X size={24} />
+          </button>
+        </CardHeader>
+        <CardContent className="space-y-6 p-4">
         <Accordion type="multiple" defaultValue={['user-type', 'date-range']} className="w-full">
           <AccordionItem value="user-type" className="border-slate-700">
             <AccordionTrigger className="text-slate-200 hover:text-blue-300 py-3 text-base">
@@ -124,7 +165,8 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ filters, onChange, onApply,
           Limpar Filtros
         </Button>
       </CardContent>
-    </Card>
+      </Card>
+    </>
   );
 };
 

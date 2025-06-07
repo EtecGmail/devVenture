@@ -40,7 +40,7 @@ import {
   BarChart,
   Bar
 } from 'recharts';
-import { PieChart as PieChartIcon, BarChart2 } from 'lucide-react';
+import { PieChart as PieChartIcon, BarChart2, Filter } from 'lucide-react';
 import { parseISO, format } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
 import AdminSidebar from './AdminSidebar';
@@ -93,6 +93,20 @@ const AdminDashboard = () => {
   const [studentPage, setStudentPage] = useState(1);
   const [teacherPage, setTeacherPage] = useState(1);
   const perPage = 10;
+
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [chartView, setChartView] = useState<'line' | 'bar' | 'pie'>('line');
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const toggleMobileSidebar = () => {
+    setIsMobileSidebarOpen(!isMobileSidebarOpen);
+  };
 
   const handleFilterChange = (f: Filters) => {
     setActiveFilters(f);
@@ -490,15 +504,48 @@ const AdminDashboard = () => {
         onChange={handleFilterChange}
         onApply={() => {}}
         onReset={resetFilters}
+        isMobileOpen={isMobileSidebarOpen}
+        toggleMobile={toggleMobileSidebar}
       />
-      {/* Main content area - adjust padding/margin to account for fixed Nav and Sidebar */}
-      <main className="flex-1 p-6 pt-20 ml-64 lg:ml-72 xl:ml-80 overflow-y-auto"> {/* Added ml classes matching sidebar widths, pt-20 for Nav */}
-        {/* Removed max-w-7xl and mx-auto from here, should be on a higher level or applied differently if needed */}
-        <div className="space-y-8"> {/* This div will now contain all the cards */}
-          {/* Summary Card */}
-          <Card>
-            <CardHeader>
-            <CardTitle>Resumo</CardTitle>
+      <main className="flex-1 p-4 pt-20 md:p-6 md:pt-20 md:ml-64 lg:ml-72 xl:ml-80 overflow-y-auto">
+        <Button
+          className="md:hidden fixed top-20 left-4 z-30"
+          variant="outline"
+          size="icon"
+          onClick={toggleMobileSidebar}
+        >
+          <Filter size={20} />
+        </Button>
+        <div className="space-y-6">
+        {/* Summary Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <span>Resumo</span>
+              <div className="md:hidden flex space-x-2">
+                <Button
+                  variant={chartView === 'line' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setChartView('line')}
+                >
+                  Linha
+                </Button>
+                <Button
+                  variant={chartView === 'pie' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setChartView('pie')}
+                >
+                  Pizza
+                </Button>
+                <Button
+                  variant={chartView === 'bar' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setChartView('bar')}
+                >
+                  Barras
+                </Button>
+              </div>
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:space-x-8 space-y-4 sm:space-y-0">
@@ -512,65 +559,61 @@ const AdminDashboard = () => {
               </div>
             </div>
 
-            {chartData.length > 0 && (
-              <div className="h-64 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis allowDecimals={false} />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="alunos" stroke="#3b82f6" name="Alunos" />
-                    <Line type="monotone" dataKey="professores" stroke="#8b5cf6" name="Professores" />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            )}
+            <div className="flex flex-col md:flex-row gap-6">
+              {(chartView === 'line' || !isMobile) && (
+                <div className="w-full md:w-2/3 h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis allowDecimals={false} />
+                      <Tooltip />
+                      <Line type="monotone" dataKey="alunos" stroke="#3b82f6" name="Alunos" />
+                      <Line type="monotone" dataKey="professores" stroke="#8b5cf6" name="Professores" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+
+              {(chartView !== 'line' || !isMobile) && (
+                <div className="w-full md:w-1/3 space-y-6">
+                  {(chartView === 'pie' || !isMobile) && (
+                    <Card className="h-[250px]">
+                      <CardContent className="h-64 p-0">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie data={pieData} dataKey="value" nameKey="name" outerRadius={80}>
+                              {pieData.map((_, i) => (
+                                <Cell key={i} fill={i === 0 ? '#3b82f6' : '#8b5cf6'} />
+                              ))}
+                            </Pie>
+                            <Tooltip />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {(chartView === 'bar' || !isMobile) && (
+                    <Card className="h-[250px]">
+                      <CardContent className="h-64 p-0">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={weekData}>
+                            <Bar dataKey="count" fill="#8b5cf6" />
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="weekday" />
+                            <YAxis allowDecimals={false} />
+                            <Tooltip />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
-
-        {/* Charts Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center text-xl">
-                <PieChartIcon size={22} className="mr-2 text-blue-500" />
-                Usuários por Tipo
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie data={pieData} dataKey="value" nameKey="name" outerRadius={80}>
-                    {pieData.map((_, i) => (
-                      <Cell key={i} fill={i === 0 ? '#3b82f6' : '#8b5cf6'} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center text-xl">
-                <BarChart2 size={22} className="mr-2 text-purple-500" />
-                Atividade Semanal
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={weekData}>
-                  <Bar dataKey="count" fill="#8b5cf6" />
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="weekday" />
-                  <YAxis allowDecimals={false} />
-                  <Tooltip />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </div>
 
         {/* Students Card */}
         <Card>
@@ -630,10 +673,31 @@ const AdminDashboard = () => {
                 </TableBody>
               </Table>
             </div>
-            <div className="flex justify-end mt-2 space-x-2">
-              <Button size="sm" variant="outline" onClick={() => setStudentPage(p => Math.max(1, p - 1))} disabled={studentPage === 1}>Anterior</Button>
-              <span className="text-sm self-center">{studentPage} / {Math.max(1, Math.ceil(filteredStudents.length / perPage))}</span>
-              <Button size="sm" variant="outline" onClick={() => setStudentPage(p => Math.min(Math.ceil(filteredStudents.length / perPage), p + 1))} disabled={studentPage >= Math.ceil(filteredStudents.length / perPage)}>Próximo</Button>
+            <div className="flex flex-col sm:flex-row justify-between items-center mt-4 gap-2">
+              <span className="text-sm text-slate-600">
+                {filteredStudents.length} alunos
+              </span>
+              <div className="flex items-center space-x-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setStudentPage(p => Math.max(1, p - 1))}
+                  disabled={studentPage === 1}
+                >
+                  Anterior
+                </Button>
+                <span className="text-sm">
+                  {studentPage}/{Math.max(1, Math.ceil(filteredStudents.length / perPage))}
+                </span>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setStudentPage(p => Math.min(Math.ceil(filteredStudents.length / perPage), p + 1))}
+                  disabled={studentPage >= Math.ceil(filteredStudents.length / perPage)}
+                >
+                  Próximo
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -697,10 +761,31 @@ const AdminDashboard = () => {
                 </TableBody>
               </Table>
             </div>
-            <div className="flex justify-end mt-2 space-x-2">
-              <Button size="sm" variant="outline" onClick={() => setTeacherPage(p => Math.max(1, p - 1))} disabled={teacherPage === 1}>Anterior</Button>
-              <span className="text-sm self-center">{teacherPage} / {Math.max(1, Math.ceil(filteredTeachers.length / perPage))}</span>
-              <Button size="sm" variant="outline" onClick={() => setTeacherPage(p => Math.min(Math.ceil(filteredTeachers.length / perPage), p + 1))} disabled={teacherPage >= Math.ceil(filteredTeachers.length / perPage)}>Próximo</Button>
+            <div className="flex flex-col sm:flex-row justify-between items-center mt-4 gap-2">
+              <span className="text-sm text-slate-600">
+                {filteredTeachers.length} professores
+              </span>
+              <div className="flex items-center space-x-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setTeacherPage(p => Math.max(1, p - 1))}
+                  disabled={teacherPage === 1}
+                >
+                  Anterior
+                </Button>
+                <span className="text-sm">
+                  {teacherPage}/{Math.max(1, Math.ceil(filteredTeachers.length / perPage))}
+                </span>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setTeacherPage(p => Math.min(Math.ceil(filteredTeachers.length / perPage), p + 1))}
+                  disabled={teacherPage >= Math.ceil(filteredTeachers.length / perPage)}
+                >
+                  Próximo
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -758,6 +843,16 @@ const AdminDashboard = () => {
             <CardContent>
               <p className="text-sm text-slate-600">
                 Integração com serviços externos e opções de tema serão disponibilizadas futuramente.
+              </p>
+            </CardContent>
+          </Card>
+          <Card className="md:col-span-2 lg:col-span-3">
+            <CardHeader>
+              <CardTitle className="text-lg">Sistema Responsivo</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-slate-600">
+                Este dashboard agora se adapta perfeitamente a dispositivos móveis, tablets e desktops.
               </p>
             </CardContent>
           </Card>
@@ -1161,7 +1256,7 @@ const AdminDashboard = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-        </div> {/* Closing the new space-y-8 div */}
+        </div>
       </main>
     </div>
   );

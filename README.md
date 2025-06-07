@@ -1,4 +1,4 @@
-# Harpion Logic Lab
+# DevVenture
 
 Projeto exclusivo da equipe Harpion desenvolvido com foco em qualidade e segurança. Esta aplicação utiliza tecnologias modernas de front-end e boas práticas de cibersegurança para garantir confiabilidade.
 

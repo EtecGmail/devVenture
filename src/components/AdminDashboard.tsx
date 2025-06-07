@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useFormValidation } from '@/hooks/useFormValidation';
 import { isCPFValid } from '@/utils/cpf';
 import {
@@ -123,6 +124,13 @@ const AdminDashboard = () => {
   const [showTeacherDialog, setShowTeacherDialog] = useState(false)
   const [showEditStudentDialog, setShowEditStudentDialog] = useState(false)
   const [showEditTeacherDialog, setShowEditTeacherDialog] = useState(false)
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false)
+  const [confirmData, setConfirmData] = useState<{
+    email: string
+    password: string
+    name: string
+    type: 'aluno' | 'professor'
+  } | null>(null)
   const [editingStudent, setEditingStudent] = useState<SimpleUser | null>(null)
   const [editingTeacher, setEditingTeacher] = useState<SimpleUser | null>(null)
   const [studentForm, setStudentForm] = useState({
@@ -230,7 +238,8 @@ const AdminDashboard = () => {
     sanitizeInput: sanitizeEditTeacherInput
   } = useFormValidation(teacherEditRules)
 
-  const { register } = useAuth()
+  const { register, login } = useAuth()
+  const navigate = useNavigate()
 
   const handleStudentChange = (field: string, value: string) => {
     let processed = value
@@ -300,7 +309,8 @@ const AdminDashboard = () => {
         curso: studentForm.curso,
         semestre: studentForm.semestre,
         telefone: studentForm.telefone
-      }
+      },
+      false
     )
     if (result.success) {
       refreshData()
@@ -314,6 +324,13 @@ const AdminDashboard = () => {
         semestre: '',
         telefone: ''
       })
+      setConfirmData({
+        email: studentForm.email,
+        password: studentForm.password,
+        name: studentForm.name,
+        type: 'aluno'
+      })
+      setShowConfirmDialog(true)
     } else {
       alert(result.error || 'Erro ao cadastrar aluno')
     }
@@ -335,7 +352,8 @@ const AdminDashboard = () => {
         formacao: teacherForm.formacao,
         telefone: teacherForm.telefone,
         registro: teacherForm.registro
-      }
+      },
+      false
     )
     if (result.success) {
       refreshData()
@@ -350,6 +368,13 @@ const AdminDashboard = () => {
         telefone: '',
         registro: ''
       })
+      setConfirmData({
+        email: teacherForm.email,
+        password: teacherForm.password,
+        name: teacherForm.name,
+        type: 'professor'
+      })
+      setShowConfirmDialog(true)
     } else {
       alert(result.error || 'Erro ao cadastrar professor')
     }
@@ -367,6 +392,13 @@ const AdminDashboard = () => {
     const updated = teachers.filter((t) => t.id !== id)
     setTeachers(updated)
     localStorage.setItem('@DevVenture:professors', JSON.stringify(updated))
+  }
+
+  const confirmEnter = async () => {
+    if (!confirmData) return
+    await login(confirmData.email, confirmData.password, confirmData.type)
+    setShowConfirmDialog(false)
+    navigate(confirmData.type === 'professor' ? '/professor' : '/aluno')
   }
 
   const handleUpdateStudent = () => {
@@ -1110,6 +1142,22 @@ const AdminDashboard = () => {
             </div>
             <DialogFooter className="mt-4">
               <Button onClick={handleAddTeacher}>Salvar</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>
+                Deseja entrar como {confirmData?.name}?
+              </DialogTitle>
+            </DialogHeader>
+            <DialogFooter className="mt-4">
+              <Button onClick={confirmEnter}>Entrar</Button>
+              <Button variant="outline" onClick={() => setShowConfirmDialog(false)}>
+                Permanecer
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

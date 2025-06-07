@@ -126,13 +126,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const register = async (
-    email: string,
-    password: string,
-    name: string,
-    type: 'aluno' | 'professor' | 'admin',
-    extras: RegisterExtras = {}
-  ): Promise<RegisterResult> => {
+const register = async (
+  email: string,
+  password: string,
+  name: string,
+  type: 'aluno' | 'professor' | 'admin',
+  extras: RegisterExtras = {},
+  autoLogin = true
+): Promise<RegisterResult> => {
     try {
       if (type === 'admin') {
         // cadastro de administradores não permitido via app
@@ -174,8 +175,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         type
       };
 
-      setUser(userData);
-      localStorage.setItem('@DevVenture:user', JSON.stringify(userData));
+      if (autoLogin) {
+        setUser(userData);
+        localStorage.setItem('@DevVenture:user', JSON.stringify(userData));
+      }
       return { success: true };
     } catch (error) {
       console.error('Erro no cadastro:', error);

@@ -110,7 +110,11 @@ const AlunoLogin = () => {
       }
 
       if (success) {
-        navigate('/aluno');
+        if (useAuth().user?.type === 'admin') {
+          navigate('/admin/dashboard');
+        } else {
+          navigate('/aluno');
+        }
       } else {
         alert(isLogin ? 'Credenciais inválidas' : errorMsg || 'Erro no cadastro');
       }

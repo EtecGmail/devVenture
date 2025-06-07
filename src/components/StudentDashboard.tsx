@@ -2,6 +2,8 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+// import { logActivity } from '@/lib/activityLog'; // Placeholder for activity logging
+// import { useAuth } from '@/contexts/AuthContext'; // Placeholder for getting user
 import { Book, Video, FileText, Trophy, MessageCircle, Play, Flame } from 'lucide-react'; // Added Flame
 
 const StudentDashboard = () => {
@@ -62,7 +64,16 @@ const StudentDashboard = () => {
                     <p className="text-slate-600 mb-3">
                       Aprenda sobre loops while e do-while com exemplos práticos
                     </p>
-                    <Button className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700">
+                    <Button
+                      className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+                      // onClick={() => {
+                      //   // const { user } = useAuth(); // Example: Get user
+                      //   // if (user && user.type === 'aluno') { // Ensure user is an aluno
+                      //   //   logActivity(user.id, user.type, 'aula_view', { aulaId: 'aula_estruturas_repeticao_p2' });
+                      //   // }
+                      //   // Navigate to aula page or open modal
+                      // }}
+                    >
                       Continuar Aula
                     </Button>
                   </div>
@@ -109,6 +120,16 @@ const StudentDashboard = () => {
                         <div>
                           <h4 className="font-medium text-slate-900">{activity.title}</h4>
                           <p className="text-sm text-slate-600">{activity.status}</p>
+                          {/*
+                          // Example of where an exercise submission log might be triggered,
+                          // though typically this would be after a direct submission action.
+                          // if (activity.type === "exercise" && activity.status === "Concluído") {
+                          //   const { user } = useAuth(); // Example
+                          //   if (user && user.type === 'aluno') {
+                          //     logActivity(user.id, user.type, 'exercicio_submit', { exercicioId: activity.title, score: activity.score });
+                          //   }
+                          // }
+                          */}
                         </div>
                       </div>
                       <div className="text-right">

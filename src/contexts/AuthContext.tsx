@@ -1,25 +1,17 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { StoredUser as AppStoredUser, LOCAL_STORAGE_KEYS } from '@/types/admin'; // Renamed to avoid conflict
+import { logActivity } from '@/lib/activityLog';
 
+// The User type for the AuthContext's 'user' state can be simpler
+// if not all StoredUser fields are needed for the active user session.
+// However, when retrieving full user objects (e.g. list of students/teachers),
+// AppStoredUser should be used.
 interface User {
   id: string;
   email: string;
   name: string;
   type: 'aluno' | 'professor' | 'admin';
-}
-
-export interface StoredUser extends User {
-  passwordHash: string;
-  salt: string;
-  createdAt: string;
-  cpf?: string;
-  ra?: string;
-  curso?: string;
-  semestre?: string;
-  telefone?: string;
-  especializacao?: string;
-  formacao?: string;
-  registro?: string;
 }
 
 export interface RegisterExtras {
@@ -39,13 +31,13 @@ interface RegisterResult {
 }
 
 interface AuthContextData {
-  user: User | null;
+  user: User | null; // This remains User, as it's for the currently authenticated session
   login: (email: string, password: string, type: 'aluno' | 'professor' | 'admin') => Promise<boolean>;
   register: (
     email: string,
     password: string,
     name: string,
-    type: 'aluno' | 'professor' | 'admin',
+    type: 'aluno' | 'professor', // Admin registration not allowed via this function
     extras?: RegisterExtras
   ) => Promise<RegisterResult>;
   logout: () => void;
@@ -64,7 +56,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   useEffect(() => {
     // Verificar se há usuário logado no localStorage
-    const storedUser = localStorage.getItem('@DevVenture:user');
+    const storedUser = localStorage.getItem(LOCAL_STORAGE_KEYS.AUTH_USER);
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
@@ -83,30 +75,38 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             type: 'admin'
           };
           setUser(userData);
-          localStorage.setItem('@DevVenture:user', JSON.stringify(userData));
+          localStorage.setItem(LOCAL_STORAGE_KEYS.AUTH_USER, JSON.stringify(userData));
+          // Admin login successful, do not log activity for admin
           return true;
         }
         return false;
       }
 
-      // Simulação de API call - em produção, substituir por chamada real
-      const users: StoredUser[] = JSON.parse(localStorage.getItem(`@DevVenture:${type}s`) || '[]');
+      const storageKey = type === 'aluno' ? LOCAL_STORAGE_KEYS.ALUNOS : LOCAL_STORAGE_KEYS.PROFESSORS;
+      const users: AppStoredUser[] = JSON.parse(localStorage.getItem(storageKey) || '[]');
       const foundUser = users.find((u) => u.email === email);
 
       if (foundUser && await verifyPassword(password, foundUser.salt, foundUser.passwordHash)) {
-        const userData: User = {
+        const sessionUserData: User = { // This is the session user, can be simpler
           id: foundUser.id,
           email: foundUser.email,
           name: foundUser.name,
-          type
+          type: foundUser.type, // Ensure type is from foundUser
         };
         
-        setUser(userData);
-        localStorage.setItem('@DevVenture:user', JSON.stringify(userData));
+        setUser(sessionUserData);
+        localStorage.setItem(LOCAL_STORAGE_KEYS.AUTH_USER, JSON.stringify(sessionUserData));
+
+        // Log activity for 'aluno' or 'professor'
+        // Ensure foundUser.type is narrowed correctly for logActivity
+        if (foundUser.type === 'aluno' || foundUser.type === 'professor') {
+          logActivity(foundUser.id, foundUser.type, 'login');
+        }
         return true;
       }
 
       // If login as 'aluno' or 'professor' failed, try admin credentials
+      // This specific admin check might be redundant if admin login is handled separately or if type is always 'admin' for admins
       if ((type === 'aluno' || type === 'professor') && email === 'admin@devventure.com' && password === 'admin123') {
         const adminUserData: User = {
           id: 'admin',
@@ -115,7 +115,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           type: 'admin'
         };
         setUser(adminUserData);
-        localStorage.setItem('@DevVenture:user', JSON.stringify(adminUserData));
+        localStorage.setItem(LOCAL_STORAGE_KEYS.AUTH_USER, JSON.stringify(adminUserData));
+        // Admin login successful (fallback case), do not log activity for admin
         return true;
       }
 
@@ -130,15 +131,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     email: string,
     password: string,
     name: string,
-    type: 'aluno' | 'professor' | 'admin',
+    type: 'aluno' | 'professor', // Admin type removed as per previous change
     extras: RegisterExtras = {}
   ): Promise<RegisterResult> => {
     try {
-      if (type === 'admin') {
-        // cadastro de administradores não permitido via app
-        return { success: false, error: 'Cadastro de administradores não permitido' };
-      }
-      const users: StoredUser[] = JSON.parse(localStorage.getItem(`@DevVenture:${type}s`) || '[]');
+      // Admin registration is not handled here
+      const storageKey = type === 'aluno' ? LOCAL_STORAGE_KEYS.ALUNOS : LOCAL_STORAGE_KEYS.PROFESSORS;
+      const users: AppStoredUser[] = JSON.parse(localStorage.getItem(storageKey) || '[]');
 
       // Verificar se email já existe
       if (users.find((u) => u.email === email)) {
@@ -154,10 +153,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       const { salt, hash } = await hashPassword(password);
-      const newUser: StoredUser = {
+      const newUser: AppStoredUser = {
         id: generateId(),
         email,
         name,
+        type, // Ensure type is set correctly
         passwordHash: hash,
         salt,
         createdAt: new Date().toISOString(),
@@ -165,17 +165,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       };
 
       users.push(newUser);
-      localStorage.setItem(`@DevVenture:${type}s`, JSON.stringify(users));
+      localStorage.setItem(storageKey, JSON.stringify(users));
 
-      const userData: User = {
+      // For the active session, we can still use the simpler User type
+      const sessionUser: User = {
         id: newUser.id,
         email: newUser.email,
         name: newUser.name,
-        type
+        type: newUser.type,
       };
 
-      setUser(userData);
-      localStorage.setItem('@DevVenture:user', JSON.stringify(userData));
+      setUser(sessionUser); // Set the simplified user object for the session
+      localStorage.setItem(LOCAL_STORAGE_KEYS.AUTH_USER, JSON.stringify(sessionUser));
       return { success: true };
     } catch (error) {
       console.error('Erro no cadastro:', error);
@@ -185,7 +186,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('@DevVenture:user');
+    localStorage.removeItem(LOCAL_STORAGE_KEYS.AUTH_USER);
   };
 
   return (

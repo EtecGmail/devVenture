@@ -1,12 +1,53 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Filters } from '@/types/admin'; // Adjusted path, assuming types are in src/types
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Filter, Users, BookOpen, CalendarDays, Search } from 'lucide-react';
 
-const AdminSidebar = () => {
+interface AdminSidebarProps {
+  activeFilters: Filters;
+  onFilterChange: (newFilters: Filters) => void;
+  allCourses: string[];
+}
+
+const AdminSidebar: React.FC<AdminSidebarProps> = ({ activeFilters, onFilterChange, allCourses }) => {
+  const [userType, setUserType] = useState<Filters['userType'] | 'all'>('all');
+  const [curso, setCurso] = useState<string | 'all'>('all');
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
+  const [searchTerm, setSearchTerm] = useState<string>('');
+
+  useEffect(() => {
+    setUserType(activeFilters.userType || 'all');
+    setCurso(activeFilters.curso || 'all');
+    setStartDate(activeFilters.startDate || '');
+    setEndDate(activeFilters.endDate || '');
+    setSearchTerm(activeFilters.search || '');
+  }, [activeFilters]);
+
+  const handleApplyFilters = () => {
+    const constructedFilters: Filters = {
+      userType: userType === 'all' ? undefined : userType,
+      curso: curso === 'all' ? undefined : curso,
+      startDate: startDate || undefined,
+      endDate: endDate || undefined,
+      search: searchTerm || undefined,
+    };
+    onFilterChange(constructedFilters);
+  };
+
+  const handleClearFilters = () => {
+    setUserType('all');
+    setCurso('all');
+    setStartDate('');
+    setEndDate('');
+    setSearchTerm('');
+    onFilterChange({});
+  };
+
   return (
     <Card className="h-full w-64 lg:w-72 xl:w-80 bg-slate-800 border-slate-700 text-white fixed top-16 left-0 overflow-y-auto pt-4">
       <CardHeader>
@@ -24,7 +65,7 @@ const AdminSidebar = () => {
               </div>
             </AccordionTrigger>
             <AccordionContent className="pt-2 pb-4 space-y-3">
-              <Select>
+              <Select value={userType} onValueChange={(value) => setUserType(value as Filters['userType'] | 'all')}>
                 <SelectTrigger className="w-full bg-slate-700 border-slate-600 text-slate-100">
                   <SelectValue placeholder="Todos os tipos" />
                 </SelectTrigger>
@@ -44,16 +85,17 @@ const AdminSidebar = () => {
               </div>
             </AccordionTrigger>
             <AccordionContent className="pt-2 pb-4 space-y-3">
-              <Select>
+              <Select value={curso} onValueChange={(value) => setCurso(value)}>
                 <SelectTrigger className="w-full bg-slate-700 border-slate-600 text-slate-100">
                   <SelectValue placeholder="Todos os cursos" />
                 </SelectTrigger>
                 <SelectContent className="bg-slate-700 text-slate-100 border-slate-600">
                   <SelectItem value="all" className="hover:bg-slate-600">Todos os cursos</SelectItem>
-                  <SelectItem value="desenvolvimento-sistemas" className="hover:bg-slate-600">Desenvolvimento de Sistemas</SelectItem>
-                  <SelectItem value="administracao" className="hover:bg-slate-600">Administração</SelectItem>
-                  <SelectItem value="contabilidade" className="hover:bg-slate-600">Contabilidade</SelectItem>
-                  {/* Adicionar mais cursos se necessário */}
+                  {allCourses.map((courseName) => (
+                    <SelectItem key={courseName} value={courseName} className="hover:bg-slate-600">
+                      {courseName}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </AccordionContent>
@@ -66,8 +108,8 @@ const AdminSidebar = () => {
               </div>
             </AccordionTrigger>
             <AccordionContent className="pt-2 pb-4 space-y-3">
-              <Input type="date" placeholder="Data inicial" className="w-full bg-slate-700 border-slate-600 text-slate-100 placeholder:text-slate-400" />
-              <Input type="date" placeholder="Data final" className="w-full bg-slate-700 border-slate-600 text-slate-100 placeholder:text-slate-400" />
+              <Input type="date" placeholder="Data inicial" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full bg-slate-700 border-slate-600 text-slate-100 placeholder:text-slate-400" />
+              <Input type="date" placeholder="Data final" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full bg-slate-700 border-slate-600 text-slate-100 placeholder:text-slate-400" />
             </AccordionContent>
           </AccordionItem>
 
@@ -78,15 +120,15 @@ const AdminSidebar = () => {
               </div>
             </AccordionTrigger>
             <AccordionContent className="pt-2 pb-4">
-              <Input placeholder="Buscar por nome, email, RA..." className="w-full bg-slate-700 border-slate-600 text-slate-100 placeholder:text-slate-400" />
+              <Input placeholder="Buscar por nome, email, RA..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full bg-slate-700 border-slate-600 text-slate-100 placeholder:text-slate-400" />
             </AccordionContent>
           </AccordionItem>
         </Accordion>
 
-        <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white mt-6">
+        <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white mt-6" onClick={handleApplyFilters}>
           Aplicar Filtros
         </Button>
-        <Button variant="outline" className="w-full hover:bg-slate-700 border-slate-600 text-slate-300 hover:text-white mt-2">
+        <Button variant="outline" className="w-full hover:bg-slate-700 border-slate-600 text-slate-300 hover:text-white mt-2" onClick={handleClearFilters}>
           Limpar Filtros
         </Button>
       </CardContent>

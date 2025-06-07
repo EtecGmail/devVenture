@@ -1,4 +1,5 @@
 import React from 'react';
+import { Filters } from '@/utils/dashboard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
@@ -6,7 +7,14 @@ import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Filter, Users, BookOpen, CalendarDays, Search } from 'lucide-react';
 
-const AdminSidebar = () => {
+interface AdminSidebarProps {
+  filters: Filters;
+  onChange: (filters: Filters) => void;
+  onApply: () => void;
+  onReset: () => void;
+}
+
+const AdminSidebar: React.FC<AdminSidebarProps> = ({ filters, onChange, onApply, onReset }) => {
   return (
     <Card className="h-full w-64 lg:w-72 xl:w-80 bg-slate-800 border-slate-700 text-white fixed top-16 left-0 overflow-y-auto pt-4">
       <CardHeader>
@@ -24,7 +32,12 @@ const AdminSidebar = () => {
               </div>
             </AccordionTrigger>
             <AccordionContent className="pt-2 pb-4 space-y-3">
-              <Select>
+              <Select
+                value={filters.userType || 'all'}
+                onValueChange={(v) =>
+                  onChange({ ...filters, userType: v === 'all' ? undefined : (v as 'aluno' | 'professor') })
+                }
+              >
                 <SelectTrigger className="w-full bg-slate-700 border-slate-600 text-slate-100">
                   <SelectValue placeholder="Todos os tipos" />
                 </SelectTrigger>
@@ -44,7 +57,12 @@ const AdminSidebar = () => {
               </div>
             </AccordionTrigger>
             <AccordionContent className="pt-2 pb-4 space-y-3">
-              <Select>
+              <Select
+                value={filters.curso || 'all'}
+                onValueChange={(v) =>
+                  onChange({ ...filters, curso: v === 'all' ? undefined : v })
+                }
+              >
                 <SelectTrigger className="w-full bg-slate-700 border-slate-600 text-slate-100">
                   <SelectValue placeholder="Todos os cursos" />
                 </SelectTrigger>
@@ -53,7 +71,6 @@ const AdminSidebar = () => {
                   <SelectItem value="desenvolvimento-sistemas" className="hover:bg-slate-600">Desenvolvimento de Sistemas</SelectItem>
                   <SelectItem value="administracao" className="hover:bg-slate-600">Administração</SelectItem>
                   <SelectItem value="contabilidade" className="hover:bg-slate-600">Contabilidade</SelectItem>
-                  {/* Adicionar mais cursos se necessário */}
                 </SelectContent>
               </Select>
             </AccordionContent>
@@ -66,8 +83,20 @@ const AdminSidebar = () => {
               </div>
             </AccordionTrigger>
             <AccordionContent className="pt-2 pb-4 space-y-3">
-              <Input type="date" placeholder="Data inicial" className="w-full bg-slate-700 border-slate-600 text-slate-100 placeholder:text-slate-400" />
-              <Input type="date" placeholder="Data final" className="w-full bg-slate-700 border-slate-600 text-slate-100 placeholder:text-slate-400" />
+              <Input
+                type="date"
+                placeholder="Data inicial"
+                className="w-full bg-slate-700 border-slate-600 text-slate-100 placeholder:text-slate-400"
+                value={filters.startDate || ''}
+                onChange={(e) => onChange({ ...filters, startDate: e.target.value })}
+              />
+              <Input
+                type="date"
+                placeholder="Data final"
+                className="w-full bg-slate-700 border-slate-600 text-slate-100 placeholder:text-slate-400"
+                value={filters.endDate || ''}
+                onChange={(e) => onChange({ ...filters, endDate: e.target.value })}
+              />
             </AccordionContent>
           </AccordionItem>
 
@@ -78,15 +107,20 @@ const AdminSidebar = () => {
               </div>
             </AccordionTrigger>
             <AccordionContent className="pt-2 pb-4">
-              <Input placeholder="Buscar por nome, email, RA..." className="w-full bg-slate-700 border-slate-600 text-slate-100 placeholder:text-slate-400" />
+              <Input
+                placeholder="Buscar por nome, email, RA..."
+                className="w-full bg-slate-700 border-slate-600 text-slate-100 placeholder:text-slate-400"
+                value={filters.search || ''}
+                onChange={(e) => onChange({ ...filters, search: e.target.value })}
+              />
             </AccordionContent>
           </AccordionItem>
         </Accordion>
 
-        <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white mt-6">
+        <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white mt-6" onClick={onApply}>
           Aplicar Filtros
         </Button>
-        <Button variant="outline" className="w-full hover:bg-slate-700 border-slate-600 text-slate-300 hover:text-white mt-2">
+        <Button variant="outline" className="w-full hover:bg-slate-700 border-slate-600 text-slate-300 hover:text-white mt-2" onClick={onReset}>
           Limpar Filtros
         </Button>
       </CardContent>

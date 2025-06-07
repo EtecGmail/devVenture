@@ -32,12 +32,19 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar
 } from 'recharts';
-import { PieChart, BarChart2 } from 'lucide-react'; // Added PieChart, BarChart2
+import { PieChart as PieChartIcon, BarChart2 } from 'lucide-react';
 import { parseISO, format } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
-import AdminSidebar from './AdminSidebar'; // Import AdminSidebar
+import AdminSidebar from './AdminSidebar';
+import { Filters, applyFilters, sortList, paginate, SortConfig } from '@/utils/dashboard';
+import { getActivityLog, ActivityLogEntry } from '@/utils/activityLog';
 
 interface SimpleUser {
   id: string
@@ -60,10 +67,57 @@ interface ChartPoint {
   professores: number
 }
 
+interface PieSlice {
+  name: string
+  value: number
+}
+
+interface WeekData {
+  weekday: string
+  count: number
+}
+
 const AdminDashboard = () => {
   const [students, setStudents] = useState<SimpleUser[]>([]);
   const [teachers, setTeachers] = useState<SimpleUser[]>([]);
-  const [chartData, setChartData] = useState<ChartPoint[]>([])
+  const [filteredStudents, setFilteredStudents] = useState<SimpleUser[]>([]);
+  const [filteredTeachers, setFilteredTeachers] = useState<SimpleUser[]>([]);
+  const [chartData, setChartData] = useState<ChartPoint[]>([]);
+  const [pieData, setPieData] = useState<PieSlice[]>([]);
+  const [weekData, setWeekData] = useState<WeekData[]>([]);
+
+  const [activeFilters, setActiveFilters] = useState<Filters>({});
+  const [studentSort, setStudentSort] = useState<SortConfig<SimpleUser> | null>(null);
+  const [teacherSort, setTeacherSort] = useState<SortConfig<SimpleUser> | null>(null);
+  const [studentPage, setStudentPage] = useState(1);
+  const [teacherPage, setTeacherPage] = useState(1);
+  const perPage = 10;
+
+  const handleFilterChange = (f: Filters) => {
+    setActiveFilters(f);
+    setStudentPage(1);
+    setTeacherPage(1);
+  };
+
+  const resetFilters = () => {
+    handleFilterChange({});
+  };
+
+  const handleStudentSort = (key: keyof SimpleUser) => {
+    setStudentSort(prev =>
+      prev && prev.key === key
+        ? { key, direction: prev.direction === 'asc' ? 'desc' : 'asc' }
+        : { key, direction: 'asc' }
+    );
+  };
+
+  const handleTeacherSort = (key: keyof SimpleUser) => {
+    setTeacherSort(prev =>
+      prev && prev.key === key
+        ? { key, direction: prev.direction === 'asc' ? 'desc' : 'asc' }
+        : { key, direction: 'asc' }
+    );
+  };
 
   const [showStudentDialog, setShowStudentDialog] = useState(false)
   const [showTeacherDialog, setShowTeacherDialog] = useState(false)
@@ -225,12 +279,8 @@ const AdminDashboard = () => {
   }
 
   const refreshData = () => {
-    const alunoData = JSON.parse(
-      localStorage.getItem('@DevVenture:alunos') || '[]'
-    )
-    const professorData = JSON.parse(
-      localStorage.getItem('@DevVenture:professors') || '[]'
-    )
+    const alunoData = JSON.parse(localStorage.getItem('@DevVenture:alunos') || '[]')
+    const professorData = JSON.parse(localStorage.getItem('@DevVenture:professors') || '[]')
     setStudents(alunoData)
     setTeachers(professorData)
   }
@@ -306,12 +356,14 @@ const AdminDashboard = () => {
   }
 
   const deleteStudent = (id: string) => {
+    if (!window.confirm('Remover este aluno?')) return
     const updated = students.filter((s) => s.id !== id)
     setStudents(updated)
     localStorage.setItem('@DevVenture:alunos', JSON.stringify(updated))
   }
 
   const deleteTeacher = (id: string) => {
+    if (!window.confirm('Remover este professor?')) return
     const updated = teachers.filter((t) => t.id !== id)
     setTeachers(updated)
     localStorage.setItem('@DevVenture:professors', JSON.stringify(updated))
@@ -339,8 +391,12 @@ const AdminDashboard = () => {
 
   const exportCSV = (type: 'alunos' | 'professors') => {
     const data = type === 'alunos' ? students : teachers
-    const csv =
-      'Nome,Email\n' + data.map((u) => `${u.name},${u.email}`).join('\n')
+    const input = prompt('Quais campos exportar? (separados por vírgula)', 'name,email')
+    if (!input) return
+    const fields = input.split(',').map(f => f.trim()).filter(Boolean) as (keyof SimpleUser)[]
+    const header = fields.join(',')
+    const rows = data.map(u => fields.map(f => String((u as Record<keyof SimpleUser, unknown>)[f] ?? '')).join(',')).join('\n')
+    const csv = header + '\n' + rows
     const blob = new Blob([csv], { type: 'text/csv' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -351,38 +407,58 @@ const AdminDashboard = () => {
   }
 
   useEffect(() => {
-    const alunoData = JSON.parse(
-      localStorage.getItem('@DevVenture:alunos') || '[]'
-    )
-    const professorData = JSON.parse(
-      localStorage.getItem('@DevVenture:professors') || '[]'
-    )
+    const alunoData = JSON.parse(localStorage.getItem('@DevVenture:alunos') || '[]')
+    const professorData = JSON.parse(localStorage.getItem('@DevVenture:professors') || '[]')
     setStudents(alunoData)
     setTeachers(professorData)
+  }, [])
+
+  useEffect(() => {
+    const fs = applyFilters(students, activeFilters)
+    const ft = applyFilters(teachers, activeFilters)
+    setFilteredStudents(sortList(fs, studentSort))
+    setFilteredTeachers(sortList(ft, teacherSort))
 
     const counts: Record<string, ChartPoint> = {}
-
-    alunoData.forEach((u: SimpleUser) => {
+    ;[...fs, ...ft].forEach((u: SimpleUser) => {
       if (!u.createdAt) return
       const m = format(parseISO(u.createdAt), 'yyyy-MM')
       if (!counts[m]) counts[m] = { month: m, alunos: 0, professores: 0 }
-      counts[m].alunos += 1
+      if (u.type === 'aluno') counts[m].alunos += 1
+      else counts[m].professores += 1
     })
-
-    professorData.forEach((u: SimpleUser) => {
-      if (!u.createdAt) return
-      const m = format(parseISO(u.createdAt), 'yyyy-MM')
-      if (!counts[m]) counts[m] = { month: m, alunos: 0, professores: 0 }
-      counts[m].professores += 1
-    })
-
     const data = Object.values(counts).sort((a, b) => a.month.localeCompare(b.month))
     setChartData(data)
-  }, [])
+
+    setPieData([
+      { name: 'Alunos', value: fs.length },
+      { name: 'Professores', value: ft.length }
+    ])
+
+    const log = getActivityLog()
+    const filteredLog = log.filter(l => {
+      if (activeFilters.userType && l.userType !== activeFilters.userType) return false
+      if (activeFilters.startDate && l.timestamp < activeFilters.startDate) return false
+      if (activeFilters.endDate && l.timestamp > activeFilters.endDate) return false
+      return true
+    })
+    const week: Record<number, number> = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 }
+    filteredLog.forEach(l => {
+      const d = new Date(l.timestamp).getDay()
+      week[d] = (week[d] || 0) + 1
+    })
+    const wd: WeekData[] = Object.keys(week).map(k => ({ weekday: ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][parseInt(k)], count: week[parseInt(k)] }))
+    setWeekData(wd)
+  }, [students, teachers, activeFilters, studentSort, teacherSort])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex">
-      <AdminSidebar />
+      <AdminSidebar
+        filters={activeFilters}
+        onChange={handleFilterChange}
+        onApply={() => {}}
+        onReset={resetFilters}
+      />
       {/* Main content area - adjust padding/margin to account for fixed Nav and Sidebar */}
       <main className="flex-1 p-6 pt-20 ml-64 lg:ml-72 xl:ml-80 overflow-y-auto"> {/* Added ml classes matching sidebar widths, pt-20 for Nav */}
         {/* Removed max-w-7xl and mx-auto from here, should be on a higher level or applied differently if needed */}
@@ -395,11 +471,11 @@ const AdminDashboard = () => {
           <CardContent className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:space-x-8 space-y-4 sm:space-y-0">
               <div className="text-center flex-1">
-                <div className="text-3xl font-bold text-blue-600">{students.length}</div>
+                <div className="text-3xl font-bold text-blue-600">{filteredStudents.length}</div>
                 <div className="text-sm text-slate-600">Alunos cadastrados</div>
               </div>
               <div className="text-center flex-1">
-                <div className="text-3xl font-bold text-purple-600">{teachers.length}</div>
+                <div className="text-3xl font-bold text-purple-600">{filteredTeachers.length}</div>
                 <div className="text-sm text-slate-600">Professores cadastrados</div>
               </div>
             </div>
@@ -421,25 +497,26 @@ const AdminDashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Placeholder Charts Section */}
+        {/* Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center text-xl">
-                <PieChart size={22} className="mr-2 text-blue-500" />
+                <PieChartIcon size={22} className="mr-2 text-blue-500" />
                 Usuários por Tipo
               </CardTitle>
             </CardHeader>
-            <CardContent className="h-64 flex items-center justify-center">
-              <div className="text-center text-slate-500">
-                {/* Mock Pie Chart */}
-                <svg width="100" height="100" viewBox="0 0 32 32" className="mx-auto mb-2">
-                  <circle r="16" cx="16" cy="16" fill="#e2e8f0"/>
-                  <circle r="8" cx="16" cy="16" fill="transparent" stroke="#60a5fa" strokeWidth="16" strokeDasharray="calc(60 * 3.14159 / 100 * 16) calc(3.14159 * 16)"/>
-                  <circle r="8" cx="16" cy="16" fill="transparent" stroke="#a78bfa" strokeWidth="16" strokeDasharray="calc(30 * 3.14159 / 100 * 16) calc(3.14159 * 16)" strokeDashoffset="calc(-60 * 3.14159 / 100 * 16)"/>
-                </svg>
-                <p>[Placeholder: Gráfico de Pizza - Alunos vs Professores]</p>
-              </div>
+            <CardContent className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={pieData} dataKey="value" nameKey="name" outerRadius={80}>
+                    {pieData.map((_, i) => (
+                      <Cell key={i} fill={i === 0 ? '#3b82f6' : '#8b5cf6'} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
             </CardContent>
           </Card>
           <Card>
@@ -449,19 +526,16 @@ const AdminDashboard = () => {
                 Atividade Semanal
               </CardTitle>
             </CardHeader>
-            <CardContent className="h-64 flex items-center justify-center">
-              <div className="text-center text-slate-500">
-                 {/* Mock Bar Chart */}
-                <svg width="150" height="100" viewBox="0 0 150 100" className="mx-auto mb-2">
-                  <rect x="10" y="70" width="20" height="30" fill="#a78bfa" />
-                  <rect x="40" y="50" width="20" height="50" fill="#a78bfa" />
-                  <rect x="70" y="30" width="20" height="70" fill="#a78bfa" />
-                  <rect x="100" y="60" width="20" height="40" fill="#a78bfa" />
-                  <rect x="130" y="40" width="20" height="60" fill="#a78bfa" />
-                  <line x1="0" y1="100" x2="150" y2="100" stroke="#cbd5e1" strokeWidth="2"/>
-                </svg>
-                <p>[Placeholder: Gráfico de Barras - Atividades/Logins]</p>
-              </div>
+            <CardContent className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={weekData}>
+                  <Bar dataKey="count" fill="#8b5cf6" />
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="weekday" />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip />
+                </BarChart>
+              </ResponsiveContainer>
             </CardContent>
           </Card>
         </div>
@@ -484,14 +558,14 @@ const AdminDashboard = () => {
               <Table className="min-w-full">
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead className="hidden sm:table-cell">RA</TableHead>
+                    <TableHead onClick={() => handleStudentSort('name')} className="cursor-pointer">Nome</TableHead>
+                    <TableHead onClick={() => handleStudentSort('email')} className="cursor-pointer">Email</TableHead>
+                    <TableHead onClick={() => handleStudentSort('ra')} className="hidden sm:table-cell cursor-pointer">RA</TableHead>
                     <TableHead className="w-32">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {students.map((s: SimpleUser) => (
+                  {paginate(filteredStudents, studentPage, perPage).map((s: SimpleUser) => (
                     <TableRow key={s.id}>
                       <TableCell className="font-medium">{s.name}</TableCell>
                       <TableCell className="truncate max-w-[150px]">{s.email}</TableCell>
@@ -524,6 +598,11 @@ const AdminDashboard = () => {
                 </TableBody>
               </Table>
             </div>
+            <div className="flex justify-end mt-2 space-x-2">
+              <Button size="sm" variant="outline" onClick={() => setStudentPage(p => Math.max(1, p - 1))} disabled={studentPage === 1}>Anterior</Button>
+              <span className="text-sm self-center">{studentPage} / {Math.max(1, Math.ceil(filteredStudents.length / perPage))}</span>
+              <Button size="sm" variant="outline" onClick={() => setStudentPage(p => Math.min(Math.ceil(filteredStudents.length / perPage), p + 1))} disabled={studentPage >= Math.ceil(filteredStudents.length / perPage)}>Próximo</Button>
+            </div>
           </CardContent>
         </Card>
 
@@ -545,14 +624,14 @@ const AdminDashboard = () => {
               <Table className="min-w-full">
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead className="hidden md:table-cell">CPF</TableHead>
+                    <TableHead onClick={() => handleTeacherSort('name')} className="cursor-pointer">Nome</TableHead>
+                    <TableHead onClick={() => handleTeacherSort('email')} className="cursor-pointer">Email</TableHead>
+                    <TableHead onClick={() => handleTeacherSort('cpf')} className="hidden md:table-cell cursor-pointer">CPF</TableHead>
                     <TableHead className="w-32">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {teachers.map((t: SimpleUser) => (
+                  {paginate(filteredTeachers, teacherPage, perPage).map((t: SimpleUser) => (
                     <TableRow key={t.id}>
                       <TableCell className="font-medium">{t.name}</TableCell>
                       <TableCell className="truncate max-w-[150px]">{t.email}</TableCell>
@@ -585,6 +664,11 @@ const AdminDashboard = () => {
                   ))}
                 </TableBody>
               </Table>
+            </div>
+            <div className="flex justify-end mt-2 space-x-2">
+              <Button size="sm" variant="outline" onClick={() => setTeacherPage(p => Math.max(1, p - 1))} disabled={teacherPage === 1}>Anterior</Button>
+              <span className="text-sm self-center">{teacherPage} / {Math.max(1, Math.ceil(filteredTeachers.length / perPage))}</span>
+              <Button size="sm" variant="outline" onClick={() => setTeacherPage(p => Math.min(Math.ceil(filteredTeachers.length / perPage), p + 1))} disabled={teacherPage >= Math.ceil(filteredTeachers.length / perPage)}>Próximo</Button>
             </div>
           </CardContent>
         </Card>

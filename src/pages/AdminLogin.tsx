@@ -20,8 +20,8 @@ const AdminLogin = () => {
     setLoading(true);
     const success = await login(email, password, 'admin');
     setLoading(false);
-    if (success) {
-      navigate('/admin');
+      if (success) {
+        navigate('/admin/dashboard');
     } else {
       alert('Credenciais inválidas');
     }

@@ -132,7 +132,11 @@ const ProfessorLogin = () => {
       }
 
       if (success) {
-        navigate('/professor');
+        if (useAuth().user?.type === 'admin') {
+          navigate('/admin/dashboard');
+        } else {
+          navigate('/professor');
+        }
       } else {
         alert(isLogin ? 'Credenciais inválidas' : errorMsg || 'Erro no cadastro');
       }

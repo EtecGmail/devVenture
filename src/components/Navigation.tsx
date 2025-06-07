@@ -17,6 +17,8 @@ const Navigation = () => {
     menuItems.push({ name: 'Área do Professor', href: '/professor', icon: User });
   } else if (user?.type === 'aluno') {
     menuItems.push({ name: 'Área do Aluno', href: '/aluno', icon: GraduationCap }); // Replaced Book
+  } else if (user?.type === 'admin') {
+    menuItems.push({ name: 'Admin Dashboard', href: '/admin/dashboard', icon: Users });
   }
 
   if (!user) {

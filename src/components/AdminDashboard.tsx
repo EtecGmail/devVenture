@@ -507,15 +507,21 @@ const AdminDashboard = () => {
         isMobileOpen={isMobileSidebarOpen}
         toggleMobile={toggleMobileSidebar}
       />
-      <main className="flex-1 p-4 pt-20 md:p-6 md:pt-20 md:ml-64 lg:ml-72 xl:ml-80 overflow-y-auto">
-        <Button
-          className="md:hidden fixed top-20 left-4 z-30"
-          variant="outline"
-          size="icon"
-          onClick={toggleMobileSidebar}
-        >
-          <Filter size={20} />
-        </Button>
+      <main
+        className={`flex-1 p-4 pt-20 md:p-6 md:pt-20 overflow-y-auto ${
+          !isMobile && isMobileSidebarOpen ? 'md:ml-64 lg:ml-72 xl:ml-80' : ''
+        }`}
+      >
+        {!isMobileSidebarOpen && (
+          <Button
+            className="fixed top-20 left-4 z-30"
+            variant="outline"
+            size="icon"
+            onClick={toggleMobileSidebar}
+          >
+            <Filter size={20} />
+          </Button>
+        )}
         <div className="space-y-6">
         {/* Summary Card */}
         <Card>

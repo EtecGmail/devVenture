@@ -29,14 +29,11 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
   useEffect(() => {
     const handleResize = () => {
       setIsLargeScreen(window.innerWidth > 768);
-      if (window.innerWidth > 768 && !isMobileOpen) {
-        toggleMobile();
-      }
     };
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [isMobileOpen, toggleMobile]);
+  }, []);
 
   return (
     <>
@@ -49,7 +46,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
 
       <Card
         className={`h-full w-64 lg:w-72 xl:w-80 bg-slate-800 border-slate-700 text-white fixed top-16 left-0 overflow-y-auto pt-4 z-40 transition-transform duration-300 ${
-          isMobileOpen || isLargeScreen ? 'translate-x-0' : '-translate-x-full'
+          isMobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         <CardHeader className="relative">
@@ -58,7 +55,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
             Filtros Avançados
           </CardTitle>
           <button
-            className="md:hidden absolute top-4 right-4 text-slate-300 hover:text-white"
+            className="absolute top-4 right-4 text-slate-300 hover:text-white"
             onClick={toggleMobile}
           >
             <X size={24} />

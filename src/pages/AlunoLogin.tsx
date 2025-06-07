@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useFormValidation } from '@/hooks/useFormValidation';
 import { useAuth } from '@/contexts/AuthContext';
 import Navigation from '@/components/Navigation';
-import { Book, Eye, EyeOff } from 'lucide-react';
+import { GraduationCap, Eye, EyeOff } from 'lucide-react'; // Replaced Book with GraduationCap
 
 const AlunoLogin = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -25,8 +25,10 @@ const AlunoLogin = () => {
     },
     password: {
       required: true,
-      minLength: 6,
-      message: 'Senha deve ter pelo menos 6 caracteres'
+      // minLength is now effectively handled by isStrongPassword, but good for immediate feedback
+      // For client-side, we can keep a basic length or remove it if message is clear
+      minLength: 8,
+      message: 'Senha: 8+ caracteres, maiúscula, minúscula, número e símbolo.'
     },
     name: {
       required: !isLogin,
@@ -40,10 +42,7 @@ const AlunoLogin = () => {
       maxLength: 20,
       message: 'RA/Matrícula deve ter entre 5 e 20 caracteres'
     },
-    curso: {
-      required: !isLogin,
-      message: 'Curso é obrigatório'
-    },
+    // curso validation rule removed
     semestre: {
       required: !isLogin,
       message: 'Semestre é obrigatório'
@@ -61,7 +60,7 @@ const AlunoLogin = () => {
     password: '',
     name: '',
     ra: '',
-    curso: '',
+    // curso field removed from formData
     semestre: '',
     telefone: ''
   });
@@ -101,7 +100,7 @@ const AlunoLogin = () => {
           'aluno',
           {
             ra: formData.ra,
-            curso: formData.curso,
+            // curso not passed to register
             semestre: formData.semestre,
             telefone: formData.telefone
           }
@@ -131,7 +130,7 @@ const AlunoLogin = () => {
         <Card className="w-full max-w-md bg-white/10 backdrop-blur-md border-white/20">
           <CardHeader className="text-center">
             <div className="mx-auto w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mb-4">
-              <Book className="w-8 h-8 text-white" />
+              <GraduationCap className="w-8 h-8 text-white" />
             </div>
             <CardTitle className="text-2xl text-white">
               {isLogin ? 'Login Aluno' : 'Cadastro Aluno'}
@@ -168,23 +167,7 @@ const AlunoLogin = () => {
                     )}
                   </div>
 
-                  <div>
-                    <Select onValueChange={(value) => handleInputChange('curso', value)}>
-                      <SelectTrigger className="bg-white/20 border-white/30 text-white">
-                        <SelectValue placeholder="Selecione seu curso *" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="desenvolvimento-sistemas">Desenvolvimento de Sistemas</SelectItem>
-                        <SelectItem value="administracao">Administração</SelectItem>
-                        <SelectItem value="contabilidade">Contabilidade</SelectItem>
-                        <SelectItem value="logistica">Logística</SelectItem>
-                        <SelectItem value="marketing">Marketing</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    {errors.curso && (
-                      <p className="text-red-400 text-sm mt-1">{errors.curso}</p>
-                    )}
-                  </div>
+                  {/* Course Select component removed */}
 
                   <div>
                     <Select onValueChange={(value) => handleInputChange('semestre', value)}>

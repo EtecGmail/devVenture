@@ -27,8 +27,8 @@ const ProfessorLogin = () => {
     },
     password: {
       required: true,
-      minLength: 6,
-      message: 'Senha deve ter pelo menos 6 caracteres'
+      minLength: 8, // Consistent with AlunoLogin and new requirements
+      message: 'Senha: 8+ caracteres, maiúscula, minúscula, número e símbolo.'
     },
     name: {
       required: !isLogin,

@@ -20,9 +20,6 @@ const HeroSection = () => {
           {/* Content */}
           <div className="space-y-8">
             <div className="space-y-4">
-              <p className="text-blue-400 font-medium tracking-wide">
-                Portal Pedagógico da ETEC de Guaianazes
-              </p>
               <h1 className="text-5xl lg:text-6xl font-bold text-white leading-tight">
                 DevVenture
                 <span className="block bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">

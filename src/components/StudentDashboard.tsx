@@ -2,7 +2,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Book, Video, FileText, Trophy, MessageCircle, Play } from 'lucide-react';
+import { Book, Video, FileText, Trophy, MessageCircle, Play, Flame } from 'lucide-react'; // Added Flame
 
 const StudentDashboard = () => {
   return (
@@ -116,6 +116,34 @@ const StudentDashboard = () => {
                       </div>
                     </div>
                   ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Streak Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Flame size={20} className="text-orange-500" />
+                  🔥 Sua Ofensiva Atual
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="text-center">
+                <div className="text-5xl font-bold text-orange-600 mb-2">
+                  7 dias
+                </div>
+                <p className="text-slate-600">
+                  Continue assim para não perder sua ofensiva!
+                </p>
+                {/* Optional: Small visual like a series of flame icons for each day */}
+                <div className="flex justify-center space-x-1 mt-3">
+                  {Array(7).fill(0).map((_, i) => (
+                    <Flame key={i} size={18} className="text-orange-400" />
+                  ))}
+                  {/* Example of how to show empty flames for a target, e.g. 7 day target */}
+                  {/* {Array(Math.max(0, 7 - 7)).fill(0).map((_, i) => (
+                    <Flame key={`empty-${i}`} size={18} className="text-slate-300" />
+                  ))} */}
                 </div>
               </CardContent>
             </Card>

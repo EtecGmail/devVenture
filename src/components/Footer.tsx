@@ -74,8 +74,8 @@ const Footer = () => {
               <div className="flex items-start space-x-3">
                 <MapPin size={16} className="text-blue-400 mt-0.5" />
                 <span className="text-sm">
-                  Av.Aguapeí, 1000<br />
-                  Guaianazes - São Paulo/SP<br />
+                  Rua Feliciano de Mendonça, 290<br />
+                  Guaianazes – São Paulo – SP<br />
                   CEP: 08460-365
                 </span>
               </div>

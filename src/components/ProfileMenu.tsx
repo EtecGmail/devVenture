@@ -40,7 +40,7 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({ logout }) => {
             className="flex items-center w-full px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white"
             onClick={() => setIsOpen(false)}
           >
-            <Edit3 size={16} className="mr-2" />
+            <Edit3 size={18} className="mr-2" />
             Editar dados pessoais
           </a>
           <Button
@@ -51,7 +51,7 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({ logout }) => {
               setIsOpen(false);
             }}
           >
-            <X size={16} className="mr-2" />
+            <X size={18} className="mr-2" />
             Sair
           </Button>
         </div>

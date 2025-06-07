@@ -34,8 +34,10 @@ import {
   Tooltip,
   ResponsiveContainer
 } from 'recharts';
+import { PieChart, BarChart2 } from 'lucide-react'; // Added PieChart, BarChart2
 import { parseISO, format } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
+import AdminSidebar from './AdminSidebar'; // Import AdminSidebar
 
 interface SimpleUser {
   id: string
@@ -379,11 +381,15 @@ const AdminDashboard = () => {
   }, [])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 pt-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {/* Summary Card */}
-        <Card>
-          <CardHeader>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex">
+      <AdminSidebar />
+      {/* Main content area - adjust padding/margin to account for fixed Nav and Sidebar */}
+      <main className="flex-1 p-6 pt-20 ml-64 lg:ml-72 xl:ml-80 overflow-y-auto"> {/* Added ml classes matching sidebar widths, pt-20 for Nav */}
+        {/* Removed max-w-7xl and mx-auto from here, should be on a higher level or applied differently if needed */}
+        <div className="space-y-8"> {/* This div will now contain all the cards */}
+          {/* Summary Card */}
+          <Card>
+            <CardHeader>
             <CardTitle>Resumo</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -414,6 +420,51 @@ const AdminDashboard = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* Placeholder Charts Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center text-xl">
+                <PieChart size={22} className="mr-2 text-blue-500" />
+                Usuários por Tipo
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="h-64 flex items-center justify-center">
+              <div className="text-center text-slate-500">
+                {/* Mock Pie Chart */}
+                <svg width="100" height="100" viewBox="0 0 32 32" className="mx-auto mb-2">
+                  <circle r="16" cx="16" cy="16" fill="#e2e8f0"/>
+                  <circle r="8" cx="16" cy="16" fill="transparent" stroke="#60a5fa" strokeWidth="16" strokeDasharray="calc(60 * 3.14159 / 100 * 16) calc(3.14159 * 16)"/>
+                  <circle r="8" cx="16" cy="16" fill="transparent" stroke="#a78bfa" strokeWidth="16" strokeDasharray="calc(30 * 3.14159 / 100 * 16) calc(3.14159 * 16)" strokeDashoffset="calc(-60 * 3.14159 / 100 * 16)"/>
+                </svg>
+                <p>[Placeholder: Gráfico de Pizza - Alunos vs Professores]</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center text-xl">
+                <BarChart2 size={22} className="mr-2 text-purple-500" />
+                Atividade Semanal
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="h-64 flex items-center justify-center">
+              <div className="text-center text-slate-500">
+                 {/* Mock Bar Chart */}
+                <svg width="150" height="100" viewBox="0 0 150 100" className="mx-auto mb-2">
+                  <rect x="10" y="70" width="20" height="30" fill="#a78bfa" />
+                  <rect x="40" y="50" width="20" height="50" fill="#a78bfa" />
+                  <rect x="70" y="30" width="20" height="70" fill="#a78bfa" />
+                  <rect x="100" y="60" width="20" height="40" fill="#a78bfa" />
+                  <rect x="130" y="40" width="20" height="60" fill="#a78bfa" />
+                  <line x1="0" y1="100" x2="150" y2="100" stroke="#cbd5e1" strokeWidth="2"/>
+                </svg>
+                <p>[Placeholder: Gráfico de Barras - Atividades/Logins]</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Students Card */}
         <Card>
@@ -978,7 +1029,8 @@ const AdminDashboard = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </div>
+        </div> {/* Closing the new space-y-8 div */}
+      </main>
     </div>
   );
 };

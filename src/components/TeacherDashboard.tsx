@@ -1,7 +1,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Book, FileText, Video, Users, Calendar } from 'lucide-react';
+import { Plus, Book, FileText, Video, Users, Calendar, Edit, Trash2 } from 'lucide-react'; // Added Edit, Trash2
 
 const TeacherDashboard = () => {
   return (
@@ -41,7 +41,7 @@ const TeacherDashboard = () => {
             {
               icon: Users,
               title: "Turmas",
-              description: "Gerenciar turmas",
+              description: "Adicionar Turma", // Changed from "Gerenciar turmas"
               color: "from-orange-500 to-red-600"
             }
           ].map((action, index) => (
@@ -105,6 +105,49 @@ const TeacherDashboard = () => {
                     </div>
                   ))}
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Gerenciamento de Turmas Card */}
+            <Card className="mt-8"> {/* Added margin-top for spacing */}
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users size={20} /> {/* Using Users icon for consistency with Turmas quick action */}
+                  Gerenciamento de Turmas
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-slate-600 mb-4">
+                  Aqui você pode editar ou excluir turmas existentes, visualizar detalhes e gerenciar os alunos de cada turma.
+                </p>
+                <div className="space-y-3">
+                  {/* Example of how individual class management actions could be listed or linked */}
+                  <div className="flex items-center justify-between p-3 bg-slate-100 rounded-lg">
+                    <span className="font-medium text-slate-800">Turma A - Manhã</span>
+                    <div className="space-x-2">
+                      <Button variant="outline" size="sm" className="text-blue-600 border-blue-600 hover:bg-blue-50">
+                        <Edit size={16} className="mr-1" /> Editar
+                      </Button>
+                      <Button variant="outline" size="sm" className="text-red-600 border-red-600 hover:bg-red-50">
+                        <Trash2 size={16} className="mr-1" /> Excluir
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-slate-100 rounded-lg">
+                    <span className="font-medium text-slate-800">Turma B - Tarde</span>
+                    <div className="space-x-2">
+                      <Button variant="outline" size="sm" className="text-blue-600 border-blue-600 hover:bg-blue-50">
+                        <Edit size={16} className="mr-1" /> Editar
+                      </Button>
+                      <Button variant="outline" size="sm" className="text-red-600 border-red-600 hover:bg-red-50">
+                        <Trash2 size={16} className="mr-1" /> Excluir
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+                <Button className="w-full mt-6 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white">
+                  Ver Todas as Turmas
+                </Button>
               </CardContent>
             </Card>
           </div>

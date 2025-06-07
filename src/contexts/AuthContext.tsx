@@ -105,6 +105,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         localStorage.setItem('@DevVenture:user', JSON.stringify(userData));
         return true;
       }
+
+      // If login as 'aluno' or 'professor' failed, try admin credentials
+      if ((type === 'aluno' || type === 'professor') && email === 'admin@devventure.com' && password === 'admin123') {
+        const adminUserData: User = {
+          id: 'admin',
+          email,
+          name: 'Administrador',
+          type: 'admin'
+        };
+        setUser(adminUserData);
+        localStorage.setItem('@DevVenture:user', JSON.stringify(adminUserData));
+        return true;
+      }
+
       return false;
     } catch (error) {
       console.error('Erro no login:', error);
@@ -218,4 +232,14 @@ const verifyPassword = async (password: string, salt: string, hash: string): Pro
 
 const generateId = (): string => {
   return Math.random().toString(36).substr(2, 9);
+};
+
+// Função para verificar a força da senha
+export const isStrongPassword = (password: string): boolean => {
+  if (password.length < 8) return false;
+  if (!/[A-Z]/.test(password)) return false;
+  if (!/[a-z]/.test(password)) return false;
+  if (!/[0-9]/.test(password)) return false;
+  if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) return false; // Ajuste os símbolos conforme necessário
+  return true;
 };

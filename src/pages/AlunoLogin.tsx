@@ -110,7 +110,9 @@ const AlunoLogin = () => {
       }
 
       if (success) {
-        if (useAuth().user?.type === 'admin') {
+        const stored = localStorage.getItem('@DevVenture:user');
+        const loggedUser = stored ? JSON.parse(stored) : null;
+        if (loggedUser?.type === 'admin') {
           navigate('/admin/dashboard');
         } else {
           navigate('/aluno');

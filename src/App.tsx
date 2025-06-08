@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Professor from "./pages/Professor";
 import Aluno from "./pages/Aluno";
 import AlunoLogin from "./pages/AlunoLogin";
+import GenerateData from "./pages/GenerateData";
 import ProfessorLogin from "./pages/ProfessorLogin";
 import Admin from "./pages/Admin";
 import AdminLogin from "./pages/AdminLogin";
@@ -49,6 +50,14 @@ const App = () => (
               element={
                 <ProtectedRoute requiredType="admin">
                   <Admin />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/generate-data"
+              element={
+                <ProtectedRoute requiredType="admin">
+                  <GenerateData />
                 </ProtectedRoute>
               }
             />

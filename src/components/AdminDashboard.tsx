@@ -26,22 +26,20 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Line, Bar, Doughnut } from "react-chartjs-2"
 import {
-  LineChart,
-  Line,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  BarChart,
-  Bar
-} from 'recharts';
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  ArcElement,
+  Tooltip as ChartJSTooltip,
+  Legend
+} from "chart.js"
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, ChartJSTooltip, Legend);
 import { PieChart as PieChartIcon, BarChart2, Filter } from 'lucide-react';
 import { parseISO, format } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
@@ -89,6 +87,42 @@ const AdminDashboard = () => {
   const [chartData, setChartData] = useState<ChartPoint[]>([]);
   const [pieData, setPieData] = useState<PieSlice[]>([]);
   const [weekData, setWeekData] = useState<WeekData[]>([]);
+  const lineChartData = {
+    labels: chartData.map(d => d.month),
+    datasets: [
+      {
+        label: "Alunos",
+        data: chartData.map(d => d.alunos),
+        borderColor: "#3b82f6",
+        backgroundColor: "rgba(59,130,246,0.4)"
+      },
+      {
+        label: "Professores",
+        data: chartData.map(d => d.professores),
+        borderColor: "#8b5cf6",
+        backgroundColor: "rgba(139,92,246,0.4)"
+      }
+    ]
+  };
+  const barChartData = {
+    labels: weekData.map(d => d.weekday),
+    datasets: [
+      {
+        label: "Atividades",
+        data: weekData.map(d => d.count),
+        backgroundColor: "rgba(139,92,246,0.6)"
+      }
+    ]
+  };
+  const donutChartData = {
+    labels: pieData.map(p => p.name),
+    datasets: [
+      {
+        data: pieData.map(p => p.value),
+        backgroundColor: ["#3b82f6", "#8b5cf6"]
+      }
+    ]
+  };
 
   const [activeFilters, setActiveFilters] = useState<Filters>({});
   const [studentSort, setStudentSort] = useState<SortConfig<SimpleUser> | null>(null);
@@ -98,7 +132,6 @@ const AdminDashboard = () => {
   const perPage = 10;
 
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const [chartView, setChartView] = useState<'line' | 'bar' | 'pie' | 'area'>('line');
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   useEffect(() => {
@@ -532,36 +565,6 @@ const AdminDashboard = () => {
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <span>Resumo</span>
-              <div className="md:hidden flex space-x-2">
-                <Button
-                  variant={chartView === 'line' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setChartView('line')}
-                >
-                  Linha
-                </Button>
-                <Button
-                  variant={chartView === 'pie' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setChartView('pie')}
-                >
-                  Pizza
-                </Button>
-                <Button
-                  variant={chartView === 'bar' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setChartView('bar')}
-                >
-                  Barras
-                </Button>
-                <Button
-                  variant={chartView === 'area' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setChartView('area')}
-                >
-                  Área
-                </Button>
-              </div>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -575,75 +578,14 @@ const AdminDashboard = () => {
                 <div className="text-sm text-slate-600">Professores cadastrados</div>
               </div>
             </div>
-
-            <div id="charts" className="flex flex-col md:flex-row gap-6">
-              {(chartView === 'line' || (!isMobile && chartView !== 'area')) && (
-                <div className="w-full md:w-2/3 h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis allowDecimals={false} />
-                      <Tooltip />
-                      <Line type="monotone" dataKey="alunos" stroke="#3b82f6" name="Alunos" />
-                      <Line type="monotone" dataKey="professores" stroke="#8b5cf6" name="Professores" />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              )}
-
-              {chartView === 'area' && (
-                <div className="w-full md:w-2/3 h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis allowDecimals={false} />
-                      <Tooltip />
-                      <Area type="monotone" dataKey="alunos" stroke="#3b82f6" fill="#93c5fd" name="Alunos" />
-                      <Area type="monotone" dataKey="professores" stroke="#8b5cf6" fill="#c4b5fd" name="Professores" />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-              )}
-
-              {(chartView !== 'line' || !isMobile) && (
-                <div className="w-full md:w-1/3 space-y-6">
-                  {(chartView === 'pie' || !isMobile) && (
-                    <Card className="h-[250px]">
-                      <CardContent className="h-64 p-0">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <PieChart>
-                            <Pie data={pieData} dataKey="value" nameKey="name" outerRadius={80}>
-                              {pieData.map((_, i) => (
-                                <Cell key={i} fill={i === 0 ? '#3b82f6' : '#8b5cf6'} />
-                              ))}
-                            </Pie>
-                            <Tooltip />
-                          </PieChart>
-                        </ResponsiveContainer>
-                      </CardContent>
-                    </Card>
-                  )}
-
-                  {(chartView === 'bar' || !isMobile) && (
-                    <Card className="h-[250px]">
-                      <CardContent className="h-64 p-0">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart data={weekData}>
-                            <Bar dataKey="count" fill="#8b5cf6" />
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="weekday" />
-                            <YAxis allowDecimals={false} />
-                            <Tooltip />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </CardContent>
-                    </Card>
-                  )}
-                </div>
-              )}
+            <div id="charts" className="space-y-8">
+              <div className="grid md:grid-cols-2 gap-8">
+                <div className="bg-card text-card-foreground rounded-lg p-4 shadow"><Line data={lineChartData} /></div>
+                <div className="bg-card text-card-foreground rounded-lg p-4 shadow"><Bar data={barChartData} /></div>
+              </div>
+              <div className="max-w-sm mx-auto bg-card text-card-foreground rounded-lg p-4 shadow"><Doughnut data={donutChartData} /></div>
             </div>
+
           </CardContent>
         </Card>
 

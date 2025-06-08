@@ -45,7 +45,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
       )}
 
       <Card
-        className={`h-full w-64 lg:w-72 xl:w-80 bg-slate-800 border-slate-700 text-white fixed top-16 left-0 overflow-y-auto pt-4 z-40 transition-transform duration-300 ${
+        className={`h-full w-64 lg:w-72 xl:w-80 bg-slate-800 border-slate-700 text-white fixed top-0 left-0 overflow-y-auto pt-4 z-40 transition-transform duration-300 ${
           isMobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >

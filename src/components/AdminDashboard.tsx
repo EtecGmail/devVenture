@@ -29,6 +29,8 @@ import { Button } from '@/components/ui/button';
 import {
   LineChart,
   Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -44,6 +46,7 @@ import { PieChart as PieChartIcon, BarChart2, Filter } from 'lucide-react';
 import { parseISO, format } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
 import AdminSidebar from './AdminSidebar';
+import AdminNav from './AdminNav';
 import { Filters, applyFilters, sortList, paginate, SortConfig } from '@/utils/dashboard';
 import { getActivityLog, ActivityLogEntry } from '@/utils/activityLog';
 
@@ -95,7 +98,7 @@ const AdminDashboard = () => {
   const perPage = 10;
 
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const [chartView, setChartView] = useState<'line' | 'bar' | 'pie'>('line');
+  const [chartView, setChartView] = useState<'line' | 'bar' | 'pie' | 'area'>('line');
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   useEffect(() => {
@@ -499,6 +502,7 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex">
+      <AdminNav />
       <AdminSidebar
         filters={activeFilters}
         onChange={handleFilterChange}
@@ -508,13 +512,13 @@ const AdminDashboard = () => {
         toggleMobile={toggleMobileSidebar}
       />
       <main
-        className={`flex-1 p-4 pt-20 md:p-6 md:pt-20 overflow-y-auto ${
-          !isMobile && isMobileSidebarOpen ? 'md:ml-64 lg:ml-72 xl:ml-80' : ''
+        className={`flex-1 p-4 pt-6 md:p-6 md:pt-6 overflow-y-auto lg:ml-56 ${
+          !isMobile && isMobileSidebarOpen ? 'md:ml-[30rem] lg:ml-[32rem] xl:ml-[34rem]' : ''
         }`}
       >
         {!isMobileSidebarOpen && (
           <Button
-            className="fixed top-20 left-4 z-30"
+            className="fixed top-4 left-4 z-30"
             variant="outline"
             size="icon"
             onClick={toggleMobileSidebar}
@@ -524,7 +528,7 @@ const AdminDashboard = () => {
         )}
         <div className="space-y-6">
         {/* Summary Card */}
-        <Card>
+        <Card id="overview">
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <span>Resumo</span>
@@ -550,6 +554,13 @@ const AdminDashboard = () => {
                 >
                   Barras
                 </Button>
+                <Button
+                  variant={chartView === 'area' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setChartView('area')}
+                >
+                  Área
+                </Button>
               </div>
             </CardTitle>
           </CardHeader>
@@ -565,8 +576,8 @@ const AdminDashboard = () => {
               </div>
             </div>
 
-            <div className="flex flex-col md:flex-row gap-6">
-              {(chartView === 'line' || !isMobile) && (
+            <div id="charts" className="flex flex-col md:flex-row gap-6">
+              {(chartView === 'line' || (!isMobile && chartView !== 'area')) && (
                 <div className="w-full md:w-2/3 h-64">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
@@ -577,6 +588,21 @@ const AdminDashboard = () => {
                       <Line type="monotone" dataKey="alunos" stroke="#3b82f6" name="Alunos" />
                       <Line type="monotone" dataKey="professores" stroke="#8b5cf6" name="Professores" />
                     </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+
+              {chartView === 'area' && (
+                <div className="w-full md:w-2/3 h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis allowDecimals={false} />
+                      <Tooltip />
+                      <Area type="monotone" dataKey="alunos" stroke="#3b82f6" fill="#93c5fd" name="Alunos" />
+                      <Area type="monotone" dataKey="professores" stroke="#8b5cf6" fill="#c4b5fd" name="Professores" />
+                    </AreaChart>
                   </ResponsiveContainer>
                 </div>
               )}
@@ -622,7 +648,7 @@ const AdminDashboard = () => {
         </Card>
 
         {/* Students Card */}
-        <Card>
+        <Card id="students">
           <CardHeader className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-4 sm:space-y-0">
             <CardTitle>Alunos</CardTitle>
             <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
@@ -709,7 +735,7 @@ const AdminDashboard = () => {
         </Card>
 
         {/* Teachers Card */}
-        <Card>
+        <Card id="teachers">
           <CardHeader className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-4 sm:space-y-0">
             <CardTitle>Professores</CardTitle>
             <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">

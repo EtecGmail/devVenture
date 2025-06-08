@@ -1,17 +1,18 @@
-import Navigation from '@/components/Navigation';
-import AdminDashboard from '@/components/AdminDashboard';
-import Footer from '@/components/Footer';
+import { Outlet } from 'react-router-dom'
+import SidebarNav from '@/components/SidebarNav'
+import Footer from '@/components/Footer'
 
 const Admin = () => {
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navigation />
-      <main className="flex-grow">
-        <AdminDashboard />
+    <div className="min-h-screen flex bg-background text-foreground">
+      {/* Sidebar de navegação */}
+      <SidebarNav />
+      <main className="flex-1 ml-0 lg:ml-64 pt-4">
+        <Outlet />
+        <Footer />
       </main>
-      <Footer />
     </div>
-  );
-};
+  )
+}
 
-export default Admin;
+export default Admin

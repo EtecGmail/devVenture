@@ -28,7 +28,7 @@ const StudentsTeachersPieChart = ({ students, teachers }: Props) => {
           cy="50%"
           innerRadius={40}
           outerRadius={80}
-          paddingAngle={5}
+          paddingAngle={0}//tirar a linha de conexão entre os setores
         >
           {data.map((entry, index) => (
             <Cell key={`cell-${index}`} fill={entry.color} />

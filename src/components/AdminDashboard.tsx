@@ -26,21 +26,9 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Line, Bar, Doughnut } from "react-chartjs-2"
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  ArcElement,
-  Tooltip as ChartJSTooltip,
-  Legend
-} from "chart.js"
-
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, ChartJSTooltip, Legend);
-import { PieChart as PieChartIcon, BarChart2, Filter } from 'lucide-react';
+import ActivityHistoryChart from "./charts/ActivityHistoryChart"
+import StudentsTeachersPieChart from "./charts/StudentsTeachersPieChart"
+import { Filter } from 'lucide-react';
 import { parseISO, format } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
 import AdminSidebar from './AdminSidebar';
@@ -63,66 +51,12 @@ interface SimpleUser {
   registro?: string
 }
 
-interface ChartPoint {
-  month: string
-  alunos: number
-  professores: number
-}
-
-interface PieSlice {
-  name: string
-  value: number
-}
-
-interface WeekData {
-  weekday: string
-  count: number
-}
-
 const AdminDashboard = () => {
   const [students, setStudents] = useState<SimpleUser[]>([]);
   const [teachers, setTeachers] = useState<SimpleUser[]>([]);
   const [filteredStudents, setFilteredStudents] = useState<SimpleUser[]>([]);
   const [filteredTeachers, setFilteredTeachers] = useState<SimpleUser[]>([]);
-  const [chartData, setChartData] = useState<ChartPoint[]>([]);
-  const [pieData, setPieData] = useState<PieSlice[]>([]);
-  const [weekData, setWeekData] = useState<WeekData[]>([]);
-  const lineChartData = {
-    labels: chartData.map(d => d.month),
-    datasets: [
-      {
-        label: "Alunos",
-        data: chartData.map(d => d.alunos),
-        borderColor: "#3b82f6",
-        backgroundColor: "rgba(59,130,246,0.4)"
-      },
-      {
-        label: "Professores",
-        data: chartData.map(d => d.professores),
-        borderColor: "#8b5cf6",
-        backgroundColor: "rgba(139,92,246,0.4)"
-      }
-    ]
-  };
-  const barChartData = {
-    labels: weekData.map(d => d.weekday),
-    datasets: [
-      {
-        label: "Atividades",
-        data: weekData.map(d => d.count),
-        backgroundColor: "rgba(139,92,246,0.6)"
-      }
-    ]
-  };
-  const donutChartData = {
-    labels: pieData.map(p => p.name),
-    datasets: [
-      {
-        data: pieData.map(p => p.value),
-        backgroundColor: ["#3b82f6", "#8b5cf6"]
-      }
-    ]
-  };
+  const [activityLog, setActivityLog] = useState<ActivityLogEntry[]>([]);
 
   const [activeFilters, setActiveFilters] = useState<Filters>({});
   const [studentSort, setStudentSort] = useState<SortConfig<SimpleUser> | null>(null);
@@ -501,21 +435,8 @@ const AdminDashboard = () => {
     setFilteredStudents(sortList(fs, studentSort))
     setFilteredTeachers(sortList(ft, teacherSort))
 
-    const counts: Record<string, ChartPoint> = {}
-    ;[...fs, ...ft].forEach((u: SimpleUser) => {
-      if (!u.createdAt) return
-      const m = format(parseISO(u.createdAt), 'yyyy-MM')
-      if (!counts[m]) counts[m] = { month: m, alunos: 0, professores: 0 }
-      if (u.type === 'aluno') counts[m].alunos += 1
-      else counts[m].professores += 1
-    })
-    const data = Object.values(counts).sort((a, b) => a.month.localeCompare(b.month))
-    setChartData(data)
 
-    setPieData([
-      { name: 'Alunos', value: fs.length },
-      { name: 'Professores', value: ft.length }
-    ])
+
 
     const log = getActivityLog()
     const filteredLog = log.filter(l => {
@@ -524,13 +445,7 @@ const AdminDashboard = () => {
       if (activeFilters.endDate && l.timestamp > activeFilters.endDate) return false
       return true
     })
-    const week: Record<number, number> = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 }
-    filteredLog.forEach(l => {
-      const d = new Date(l.timestamp).getDay()
-      week[d] = (week[d] || 0) + 1
-    })
-    const wd: WeekData[] = Object.keys(week).map(k => ({ weekday: ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][parseInt(k)], count: week[parseInt(k)] }))
-    setWeekData(wd)
+    setActivityLog(filteredLog)
   }, [students, teachers, activeFilters, studentSort, teacherSort])
 
   return (
@@ -580,10 +495,16 @@ const AdminDashboard = () => {
             </div>
             <div id="charts" className="space-y-8">
               <div className="grid md:grid-cols-2 gap-8">
-                <div className="bg-card text-card-foreground rounded-lg p-4 shadow"><Line data={lineChartData} /></div>
-                <div className="bg-card text-card-foreground rounded-lg p-4 shadow"><Bar data={barChartData} /></div>
+                <div className="bg-card text-card-foreground rounded-lg p-4 shadow">
+                  <ActivityHistoryChart log={activityLog} />
+                </div>
+                <div className="bg-card text-card-foreground rounded-lg p-4 shadow">
+                  <StudentsTeachersPieChart
+                    students={filteredStudents.length}
+                    teachers={filteredTeachers.length}
+                  />
+                </div>
               </div>
-              <div className="max-w-sm mx-auto bg-card text-card-foreground rounded-lg p-4 shadow"><Doughnut data={donutChartData} /></div>
             </div>
 
           </CardContent>

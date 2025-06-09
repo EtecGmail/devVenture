@@ -114,7 +114,7 @@ const RegistrationHistoryChart = ({ students, teachers }: Props) => {
       </Tabs>
       <ChartContainer
         className="mt-4"
-        config={{ alunos: { color: "hsl(var(--primary))" }, professores: { color: "hsl(var(--secondary))" } }}
+        config={{ alunos: { color: "#3b82f6" }, professores: { color: "#10b981" } }}
       >
         {isCategorical ? (
           <BarChart data={data}>
@@ -122,8 +122,8 @@ const RegistrationHistoryChart = ({ students, teachers }: Props) => {
             <XAxis dataKey="label" />
             <YAxis allowDecimals={false} />
             <Tooltip content={<ChartTooltipContent />} />
-            <Bar dataKey="alunos" stackId="a" fill="var(--color-alunos)" name="Alunos" />
-            <Bar dataKey="professores" stackId="a" fill="var(--color-professores)" name="Professores" />
+            <Bar dataKey="alunos" stackId="a" fill="var(--color-alunos)" name="Alunos" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="professores" stackId="a" fill="var(--color-professores)" name="Professores" radius={[4, 4, 0, 0]} />
           </BarChart>
         ) : (
           <AreaChart data={data}>
@@ -131,8 +131,8 @@ const RegistrationHistoryChart = ({ students, teachers }: Props) => {
             <XAxis dataKey="label" />
             <YAxis allowDecimals={false} />
             <Tooltip content={<ChartTooltipContent />} />
-            <Area type="monotone" dataKey="alunos" stroke="var(--color-alunos)" fill="var(--color-alunos)" name="Alunos" />
-            <Area type="monotone" dataKey="professores" stroke="var(--color-professores)" fill="var(--color-professores)" name="Professores" />
+            <Area type="monotone" dataKey="alunos" stroke="var(--color-alunos)" fill="var(--color-alunos)" fillOpacity={0.4} name="Alunos" />
+            <Area type="monotone" dataKey="professores" stroke="var(--color-professores)" fill="var(--color-professores)" fillOpacity={0.4} name="Professores" />
           </AreaChart>
         )}
       </ChartContainer>

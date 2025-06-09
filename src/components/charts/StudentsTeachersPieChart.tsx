@@ -1,4 +1,4 @@
-import { PieChart, Pie, Cell, Tooltip } from "recharts"
+import { PieChart, Pie, Cell, Tooltip, Legend } from "recharts"
 import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart"
 
 interface Props {
@@ -6,17 +6,18 @@ interface Props {
   teachers: number
 }
 
-const COLORS = ["hsl(var(--primary))", "hsl(var(--secondary))"]
+const STUDENT_COLOR = "#3b82f6";
+const TEACHER_COLOR = "#10b981";
 
 const StudentsTeachersPieChart = ({ students, teachers }: Props) => {
   const data = [
-    { name: "Alunos", value: students },
-    { name: "Professores", value: teachers },
+    { name: "Alunos", value: students, color: STUDENT_COLOR },
+    { name: "Professores", value: teachers, color: TEACHER_COLOR },
   ]
   return (
     <ChartContainer
       className="h-64"
-      config={{ alunos: { color: COLORS[0] }, professores: { color: COLORS[1] } }}
+      config={{ alunos: { color: STUDENT_COLOR }, professores: { color: TEACHER_COLOR } }}
     >
       <PieChart>
         <Pie
@@ -30,10 +31,11 @@ const StudentsTeachersPieChart = ({ students, teachers }: Props) => {
           paddingAngle={5}
         >
           {data.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+            <Cell key={`cell-${index}`} fill={entry.color} />
           ))}
         </Pie>
         <Tooltip content={<ChartTooltipContent />} />
+        <Legend verticalAlign="bottom" height={36}/>
       </PieChart>
     </ChartContainer>
   )

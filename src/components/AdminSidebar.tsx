@@ -45,7 +45,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
       )}
 
       <Card
-        className={`h-full w-64 lg:w-72 xl:w-80 bg-slate-800 border-slate-700 text-white fixed top-16 left-0 overflow-y-auto pt-4 z-40 transition-transform duration-300 ${
+        className={`h-full w-72 xl:w-80 bg-slate-800 border-slate-700 text-white fixed top-16 left-0 overflow-y-auto pt-4 z-40 transition-transform duration-300 ${
           isMobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -55,8 +55,9 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
             Filtros Avançados
           </CardTitle>
           <button
-            className="absolute top-4 right-4 text-slate-300 hover:text-white"
+            className="absolute top-4 right-4 text-slate-300 hover:text-white md:hidden"
             onClick={toggleMobile}
+            aria-label="Close sidebar"
           >
             <X size={24} />
           </button>

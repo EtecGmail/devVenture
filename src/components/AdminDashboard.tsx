@@ -28,7 +28,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import RegistrationHistoryChart from "./charts/RegistrationHistoryChart"
 import StudentsTeachersPieChart from "./charts/StudentsTeachersPieChart"
-import { Filter } from 'lucide-react';
+import { Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 import { parseISO, format } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
 import AdminSidebar from './AdminSidebar';
@@ -454,7 +454,7 @@ const AdminDashboard = () => {
           !isMobile && isMobileSidebarOpen ? 'md:ml-[30rem] lg:ml-[32rem] xl:ml-[34rem]' : ''
         }`}
       >
-        {!isMobileSidebarOpen && (
+        {isMobile && !isMobileSidebarOpen && (
           <Button
             className="fixed top-20 left-4 z-30"
             variant="outline"
@@ -571,7 +571,8 @@ const AdminDashboard = () => {
                   onClick={() => setStudentPage(p => Math.max(1, p - 1))}
                   disabled={studentPage === 1}
                 >
-                  Anterior
+                  <ChevronLeft size={16} className="mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Anterior</span>
                 </Button>
                 <span className="text-sm">
                   {studentPage}/{Math.max(1, Math.ceil(filteredStudents.length / perPage))}
@@ -582,7 +583,8 @@ const AdminDashboard = () => {
                   onClick={() => setStudentPage(p => Math.min(Math.ceil(filteredStudents.length / perPage), p + 1))}
                   disabled={studentPage >= Math.ceil(filteredStudents.length / perPage)}
                 >
-                  Próximo
+                  <span className="hidden sm:inline">Próximo</span>
+                  <ChevronRight size={16} className="ml-1 sm:ml-2" />
                 </Button>
               </div>
             </div>
@@ -659,7 +661,8 @@ const AdminDashboard = () => {
                   onClick={() => setTeacherPage(p => Math.max(1, p - 1))}
                   disabled={teacherPage === 1}
                 >
-                  Anterior
+                  <ChevronLeft size={16} className="mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Anterior</span>
                 </Button>
                 <span className="text-sm">
                   {teacherPage}/{Math.max(1, Math.ceil(filteredTeachers.length / perPage))}
@@ -670,7 +673,8 @@ const AdminDashboard = () => {
                   onClick={() => setTeacherPage(p => Math.min(Math.ceil(filteredTeachers.length / perPage), p + 1))}
                   disabled={teacherPage >= Math.ceil(filteredTeachers.length / perPage)}
                 >
-                  Próximo
+                  <span className="hidden sm:inline">Próximo</span>
+                  <ChevronRight size={16} className="ml-1 sm:ml-2" />
                 </Button>
               </div>
             </div>

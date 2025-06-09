@@ -1,6 +1,5 @@
 import Navigation from '@/components/Navigation';
 import AdminDashboard from '@/components/AdminDashboard';
-import Footer from '@/components/Footer';
 
 const Admin = () => {
   return (
@@ -9,7 +8,6 @@ const Admin = () => {
       <main className="flex-grow">
         <AdminDashboard />
       </main>
-      <Footer />
     </div>
   );
 };

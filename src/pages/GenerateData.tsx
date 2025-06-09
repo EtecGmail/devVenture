@@ -1,6 +1,5 @@
 import { faker } from '@faker-js/faker'
-import Navigation from '@/components/Navigation'
-import Footer from '@/components/Footer'
+import { useNavigate } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/contexts/AuthContext'
@@ -26,6 +25,7 @@ function generateCPF() {
 
 const GenerateData = () => {
   const { register } = useAuth()
+  const navigate = useNavigate()
   const [isGenerating, setIsGenerating] = useState(false)
   const [progress, setProgress] = useState(0)
   const [showSuccess, setShowSuccess] = useState(false)
@@ -122,8 +122,10 @@ const GenerateData = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 to-gray-100">
-      <Navigation />
       <Toaster position="top-center" richColors closeButton />
+      <div className="p-4">
+        <Button variant="secondary" onClick={() => navigate('/admin/dashboard')}>Voltar ao Dashboard</Button>
+      </div>
       
       <main className="flex-grow flex items-center justify-center p-4">
         <motion.div
@@ -234,7 +236,6 @@ const GenerateData = () => {
         </motion.div>
       </main>
       
-      <Footer />
     </div>
   )
 }

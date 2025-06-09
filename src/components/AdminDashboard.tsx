@@ -28,7 +28,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import ActivityHistoryChart from "./charts/ActivityHistoryChart"
 import StudentsTeachersPieChart from "./charts/StudentsTeachersPieChart"
-import { PieChart as PieChartIcon, BarChart2, Filter } from 'lucide-react';
+import { Filter } from 'lucide-react';
 import { parseISO, format } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
 import AdminSidebar from './AdminSidebar';

@@ -26,7 +26,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import ActivityHistoryChart from "./charts/ActivityHistoryChart"
+import RegistrationHistoryChart from "./charts/RegistrationHistoryChart"
 import StudentsTeachersPieChart from "./charts/StudentsTeachersPieChart"
 import { Filter } from 'lucide-react';
 import { parseISO, format } from 'date-fns';
@@ -34,7 +34,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import AdminSidebar from './AdminSidebar';
 import AdminNav from './AdminNav';
 import { Filters, applyFilters, sortList, paginate, SortConfig } from '@/utils/dashboard';
-import { getActivityLog, ActivityLogEntry } from '@/utils/activityLog';
 
 interface SimpleUser {
   id: string
@@ -56,7 +55,6 @@ const AdminDashboard = () => {
   const [teachers, setTeachers] = useState<SimpleUser[]>([]);
   const [filteredStudents, setFilteredStudents] = useState<SimpleUser[]>([]);
   const [filteredTeachers, setFilteredTeachers] = useState<SimpleUser[]>([]);
-  const [activityLog, setActivityLog] = useState<ActivityLogEntry[]>([]);
 
   const [activeFilters, setActiveFilters] = useState<Filters>({});
   const [studentSort, setStudentSort] = useState<SortConfig<SimpleUser> | null>(null);
@@ -438,14 +436,6 @@ const AdminDashboard = () => {
 
 
 
-    const log = getActivityLog()
-    const filteredLog = log.filter(l => {
-      if (activeFilters.userType && l.userType !== activeFilters.userType) return false
-      if (activeFilters.startDate && l.timestamp < activeFilters.startDate) return false
-      if (activeFilters.endDate && l.timestamp > activeFilters.endDate) return false
-      return true
-    })
-    setActivityLog(filteredLog)
   }, [students, teachers, activeFilters, studentSort, teacherSort])
 
   return (
@@ -495,14 +485,16 @@ const AdminDashboard = () => {
             </div>
             <div id="charts" className="space-y-8">
               <div className="grid md:grid-cols-2 gap-8">
-                <div className="bg-card text-card-foreground rounded-lg p-4 shadow">
-                  <ActivityHistoryChart log={activityLog} />
+                <div className="bg-card text-card-foreground rounded-lg p-4 shadow space-y-2">
+                  <RegistrationHistoryChart students={students} teachers={teachers} />
+                  <p className="text-sm text-muted-foreground text-center">Cadastros de alunos e professores ao longo do tempo.</p>
                 </div>
-                <div className="bg-card text-card-foreground rounded-lg p-4 shadow">
+                <div className="bg-card text-card-foreground rounded-lg p-4 shadow space-y-2">
                   <StudentsTeachersPieChart
                     students={filteredStudents.length}
                     teachers={filteredTeachers.length}
                   />
+                  <p className="text-sm text-muted-foreground text-center">Distribuição atual entre alunos e professores cadastrados.</p>
                 </div>
               </div>
             </div>

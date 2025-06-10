@@ -151,13 +151,13 @@ const ProfessorLogin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-900">
       <Navigation />
       
       <div className="flex items-center justify-center min-h-screen pt-16 px-4">
         <Card className="w-full max-w-md bg-white/10 backdrop-blur-md border-white/20">
           <CardHeader className="text-center">
-            <div className="mx-auto w-16 h-16 bg-purple-500 rounded-full flex items-center justify-center mb-4">
+            <div className="mx-auto w-16 h-16 bg-indigo-500 rounded-full flex items-center justify-center mb-4">
               <User className="w-8 h-8 text-white" />
             </div>
             <CardTitle className="text-2xl text-white">
@@ -293,7 +293,7 @@ const ProfessorLogin = () => {
 
               <Button
                 type="submit"
-                className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
                 disabled={loading}
               >
                 {loading ? 'Processando...' : (isLogin ? 'Entrar' : 'Cadastrar')}
@@ -303,7 +303,7 @@ const ProfessorLogin = () => {
             <div className="mt-6 text-center space-y-2">
               <button
                 onClick={() => setIsLogin(!isLogin)}
-                className="text-purple-400 hover:text-purple-300 text-sm block"
+                className="text-indigo-400 hover:text-indigo-300 text-sm block"
               >
                 {isLogin ? 'Não tem conta? Cadastre-se' : 'Já tem conta? Faça login'}
               </button>

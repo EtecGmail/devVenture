@@ -3,16 +3,16 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useFormValidation } from '@/hooks/useFormValidation';
 import { useAuth } from '@/contexts/AuthContext';
 import Navigation from '@/components/Navigation';
-import { GraduationCap, Eye, EyeOff } from 'lucide-react'; // Replaced Book with GraduationCap
+import { GraduationCap } from 'lucide-react';
 
 const AlunoLogin = () => {
   const [isLogin, setIsLogin] = useState(true);
-  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const { login, register } = useAuth();
   const navigate = useNavigate();
@@ -219,21 +219,13 @@ const AlunoLogin = () => {
                 )}
               </div>
 
-              <div className="relative">
-                <Input
-                  type={showPassword ? 'text' : 'password'}
+              <div>
+                <PasswordInput
                   placeholder="Senha *"
                   value={formData.password}
                   onChange={(e) => handleInputChange('password', e.target.value)}
-                  className="bg-white/20 border-white/30 text-white placeholder:text-white/70 pr-10"
+                  className="bg-white/20 border-white/30 text-white placeholder:text-white/70"
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/70 hover:text-white"
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
                 {errors.password && (
                   <p className="text-red-400 text-sm mt-1">{errors.password}</p>
                 )}

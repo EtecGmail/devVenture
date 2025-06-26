@@ -1,6 +1,18 @@
 
 import { Button } from '@/components/ui/button';
-import { Book, Users, Calendar, Search, Code, Trophy, Video, MessageCircle } from 'lucide-react';
+import {
+  BookOpenText,
+  Workflow,
+  MessagesSquare,
+  Award,
+  Video,
+  Code,
+  Trophy,
+  MessageCircle,
+  Code2,
+  CalendarClock,
+} from 'lucide-react';
+import { FaChalkboardTeacher, FaUserGraduate } from 'react-icons/fa';
 
 const HeroSection = () => {
   return (
@@ -39,21 +51,21 @@ const HeroSection = () => {
               ensino e aprendizado da lógica de programação básica.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Button 
-                size="lg" 
-                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105"
-              >
-                Área do Professor
-              </Button>
-              <Button 
-                variant="outline" 
-                size="lg"
-                className="border-2 border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-white px-8 py-3 rounded-xl font-semibold transition-all duration-300"
-              >
-                Área do Aluno
-              </Button>
-            </div>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Button
+                  size="lg"
+                  className="bg-gradient-to-r from-[#6D28D9] to-[#3B82F6] text-white px-8 py-3 rounded-full shadow-md font-semibold transition-all duration-300 hover:from-[#5b21b6] hover:to-[#2563EB]"
+                >
+                  <FaChalkboardTeacher className="mr-2" /> Área do Professor
+                </Button>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="bg-white border border-blue-400 text-blue-400 hover:bg-[#2563EB] hover:text-white px-8 py-3 rounded-full shadow-md font-semibold transition-all duration-300"
+                >
+                  <FaUserGraduate className="mr-2" /> Área do Aluno
+                </Button>
+              </div>
           </div>
 
           {/* Interactive Features Illustration */}
@@ -83,32 +95,45 @@ const HeroSection = () => {
         <div className="grid md:grid-cols-4 gap-6 mt-20">
           {[
             {
-              icon: Book,
+              icon: BookOpenText,
+              color: "text-[#A855F7]",
+              hover: "hover:bg-purple-500/10",
               title: "Gestão de Aulas",
-              description: "Cadastro de aulas, exercícios e materiais de apoio pelos professores"
+              tooltip: "Gerencie aulas, conteúdos e exercícios de forma organizada",
+              description: "Cadastro de aulas, exercícios e materiais de apoio pelos professores",
             },
             {
-              icon: Code,
+              icon: Workflow,
+              color: "text-[#22D3EE]",
+              hover: "hover:bg-cyan-500/10",
               title: "Visualização de Fluxogramas",
-              description: "Ferramentas interativas para compreender algoritmos visualmente"
+              tooltip: "Crie e explore algoritmos com recursos visuais",
+              description: "Ferramentas interativas para compreender algoritmos visualmente",
             },
             {
-              icon: Users,
+              icon: MessagesSquare,
+              color: "text-[#60A5FA]",
+              hover: "hover:bg-blue-500/10",
               title: "Fórum de Dúvidas",
-              description: "Espaço colaborativo para interação entre alunos e professores"
+              tooltip: "Compartilhe dúvidas e ajude seus colegas",
+              description: "Espaço colaborativo para interação entre alunos e professores",
             },
             {
-              icon: Trophy,
+              icon: Award,
+              color: "text-[#FACC15]",
+              hover: "hover:bg-yellow-400/10",
               title: "Desafios Gamificados",
-              description: "Rankings de desempenho e sistema de conquistas motivacionais"
-            }
+              tooltip: "Suba no ranking ao resolver desafios e acumule conquistas",
+              description: "Rankings de desempenho e sistema de conquistas motivacionais",
+            },
           ].map((feature, index) => (
-            <div 
+            <div
               key={index}
-              className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 text-center hover:bg-slate-800/70 transition-all duration-300 transform hover:scale-105"
+              className={`bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 text-center transition-all duration-300 transform hover:scale-105 ${feature.hover}`}
+              title={feature.tooltip}
             >
-              <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <feature.icon className="text-white" size={24} />
+              <div className="w-12 h-12 mx-auto mb-4 flex items-center justify-center rounded-lg bg-slate-700/50">
+                <feature.icon className={feature.color} size={24} />
               </div>
               <h3 className="text-white font-semibold mb-2">{feature.title}</h3>
               <p className="text-slate-400 text-sm">{feature.description}</p>
@@ -125,31 +150,33 @@ const HeroSection = () => {
             {[
               {
                 icon: Video,
-                title: "Vídeos Explicativos",
-                description: "Conteúdo audiovisual para diferentes estilos de aprendizado"
-              },
-              {
-                icon: Search,
-                title: "Execução Simulada",
-                description: "Execute e visualize algoritmos passo a passo"
-              },
-              {
-                icon: Calendar,
-                title: "Cronograma Estruturado",
-                description: "Organização temporal do conteúdo pedagógico"
-              }
-            ].map((feature, index) => (
-              <div key={index} className="flex items-start space-x-4">
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <feature.icon className="text-white" size={20} />
+              color: "text-[#F472B6]",
+              title: "Vídeos Explicativos",
+              description: "Conteúdo audiovisual para diferentes estilos de aprendizado",
+            },
+            {
+              icon: Code2,
+              color: "text-[#34D399]",
+              title: "Execução Simulada",
+              description: "Execute e visualize algoritmos passo a passo",
+            },
+            {
+              icon: CalendarClock,
+              color: "text-[#C084FC]",
+              title: "Cronograma Estruturado",
+              description: "Organize seu progresso com um plano claro",
+            }].map((feature, index) => (
+              <div key={index} className="flex items-start space-x-4" title={feature.description}>
+                <div className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-700/50">
+                  <feature.icon className={feature.color} size={20} />
                 </div>
                 <div>
                   <h3 className="text-white font-semibold mb-1">{feature.title}</h3>
-                  <p className="text-slate-400 text-sm">{feature.description}</p>
                 </div>
               </div>
             ))}
           </div>
+
         </div>
       </div>
     </div>

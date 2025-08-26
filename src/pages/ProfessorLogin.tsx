@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { useFormValidation } from '@/hooks/useFormValidation';
 import { useAuth } from '@/contexts/AuthContext';
+import { ApiError } from '@/services/api';
 import Navigation from '@/components/Navigation';
 import { User } from 'lucide-react';
 import { formatCPF, isCPFValid } from '@/utils/cpf';
@@ -112,7 +113,8 @@ const ProfessorLogin = () => {
       let errorMsg: string | undefined;
 
       if (isLogin) {
-        success = await login(formData.email, formData.password, 'professor');
+        await login(formData.email, formData.password, 'professor');
+        success = true;
       } else {
         const result = await register(
           formData.email,
@@ -131,23 +133,26 @@ const ProfessorLogin = () => {
         errorMsg = result.error;
       }
 
-      if (success) {
-        const stored = localStorage.getItem('@DevVenture:user');
-        const loggedUser = stored ? JSON.parse(stored) : null;
-        if (loggedUser?.type === 'admin') {
-          navigate('/admin/dashboard');
+        if (success) {
+          const stored = localStorage.getItem('dv:user');
+          const loggedUser = stored ? JSON.parse(stored) : null;
+          if (loggedUser?.type === 'admin') {
+            navigate('/admin/dashboard');
+          } else {
+            navigate('/professor');
+          }
         } else {
-          navigate('/professor');
+          alert(errorMsg || 'Erro no cadastro');
         }
-      } else {
-        alert(isLogin ? 'Credenciais inválidas' : errorMsg || 'Erro no cadastro');
+      } catch (error) {
+        if (error instanceof ApiError) {
+          alert(error.message);
+        } else {
+          alert('Erro interno. Tente novamente.');
+        }
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('Erro:', error);
-      alert('Erro interno. Tente novamente.');
-    } finally {
-      setLoading(false);
-    }
   };
 
   return (

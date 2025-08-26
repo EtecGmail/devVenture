@@ -31,6 +31,7 @@ import StudentsTeachersPieChart from "./charts/StudentsTeachersPieChart"
 import { Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 import { parseISO, format } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
+import { api, ApiError } from '@/services/api';
 import AdminSidebar from './AdminSidebar';
 import AdminNav from './AdminNav';
 import { Filters, applyFilters, sortList, paginate, SortConfig } from '@/utils/dashboard';
@@ -276,6 +277,38 @@ const AdminDashboard = () => {
     setTeachers(professorData)
   }
 
+  const syncStudents = async () => {
+    try {
+      const { data: alunosDB } = await api.get<SimpleUser[]>('/listarAlunos')
+      const localAlunos: SimpleUser[] = JSON.parse(localStorage.getItem('@DevVenture:alunos') || '[]')
+      const merged = [...localAlunos]
+      alunosDB.forEach((a: SimpleUser) => {
+        if (!merged.some((s: SimpleUser) => s.id === a.id)) merged.push(a)
+      })
+      localStorage.setItem('@DevVenture:alunos', JSON.stringify(merged))
+      setStudents(merged)
+    } catch {
+      // Se a API cochilar, seguimos com o que já temos no navegador.
+      refreshData()
+    }
+  }
+
+  const syncTeachers = async () => {
+    try {
+      const { data: profDB } = await api.get<SimpleUser[]>('/listarProfessores')
+      const local: SimpleUser[] = JSON.parse(localStorage.getItem('@DevVenture:professors') || '[]')
+      const merged = [...local]
+      profDB.forEach((p: SimpleUser) => {
+        if (!merged.some((t: SimpleUser) => t.id === p.id)) merged.push(p)
+      })
+      localStorage.setItem('@DevVenture:professors', JSON.stringify(merged))
+      setTeachers(merged)
+    } catch {
+      // A API recusou café? Tudo bem, a gente usa os dados guardados.
+      refreshData()
+    }
+  }
+
   const handleAddStudent = async () => {
     if (!validateStudentForm(studentForm)) {
       return
@@ -378,9 +411,13 @@ const AdminDashboard = () => {
 
   const confirmEnter = async () => {
     if (!confirmData) return
-    await login(confirmData.email, confirmData.password, confirmData.type)
-    setShowConfirmDialog(false)
-    navigate(confirmData.type === 'professor' ? '/professor' : '/aluno')
+    try {
+      await login(confirmData.email, confirmData.password, confirmData.type)
+      setShowConfirmDialog(false)
+      navigate(confirmData.type === 'professor' ? '/professor' : '/aluno')
+    } catch (error) {
+      alert(error instanceof ApiError ? error.message : 'Login falhou')
+    }
   }
 
   const handleUpdateStudent = () => {
@@ -421,10 +458,11 @@ const AdminDashboard = () => {
   }
 
   useEffect(() => {
-    const alunoData = JSON.parse(localStorage.getItem('@DevVenture:alunos') || '[]')
-    const professorData = JSON.parse(localStorage.getItem('@DevVenture:professors') || '[]')
-    setStudents(alunoData)
-    setTeachers(professorData)
+    const load = async () => {
+      await syncStudents()
+      await syncTeachers()
+    }
+    load()
   }, [])
 
   useEffect(() => {

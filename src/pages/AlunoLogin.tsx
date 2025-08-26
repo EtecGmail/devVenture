@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useFormValidation } from '@/hooks/useFormValidation';
 import { useAuth } from '@/contexts/AuthContext';
+import { ApiError } from '@/services/api';
 import Navigation from '@/components/Navigation';
 import { GraduationCap } from 'lucide-react';
 
@@ -91,7 +92,8 @@ const AlunoLogin = () => {
       let errorMsg: string | undefined;
 
       if (isLogin) {
-        success = await login(formData.email, formData.password, 'aluno');
+        await login(formData.email, formData.password, 'aluno');
+        success = true;
       } else {
         const result = await register(
           formData.email,
@@ -110,7 +112,7 @@ const AlunoLogin = () => {
       }
 
       if (success) {
-        const stored = localStorage.getItem('@DevVenture:user');
+        const stored = localStorage.getItem('dv:user');
         const loggedUser = stored ? JSON.parse(stored) : null;
         if (loggedUser?.type === 'admin') {
           navigate('/admin/dashboard');
@@ -118,11 +120,14 @@ const AlunoLogin = () => {
           navigate('/aluno');
         }
       } else {
-        alert(isLogin ? 'Credenciais inválidas' : errorMsg || 'Erro no cadastro');
+        alert(errorMsg || 'Erro no cadastro');
       }
     } catch (error) {
-      console.error('Erro:', error);
-      alert('Erro interno. Tente novamente.');
+      if (error instanceof ApiError) {
+        alert(error.message);
+      } else {
+        alert('Erro interno. Tente novamente.');
+      }
     } finally {
       setLoading(false);
     }

@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Navigation from '@/components/Navigation';
 import { Shield } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { ApiError } from '@/services/api';
 
 const AdminLogin = () => {
   const [email, setEmail] = useState('');
@@ -15,17 +16,22 @@ const AdminLogin = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    const success = await login(email, password, 'admin');
-    setLoading(false);
-      if (success) {
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      setLoading(true);
+      try {
+        await login(email, password, 'admin');
         navigate('/admin/dashboard');
-    } else {
-      alert('Credenciais inválidas');
-    }
-  };
+      } catch (error) {
+        if (error instanceof ApiError) {
+          alert(error.message);
+        } else {
+          alert('Credenciais inválidas');
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
